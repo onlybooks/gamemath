@@ -1,10 +1,11 @@
 
 #include "Precompiled.h"
 #include "SoftRenderer.h"
+#include <random>
 using namespace CK::DD;
 
-// 그리드 그리기
-void SoftRenderer::DrawGrid2D()
+// 기즈모 그리기
+void SoftRenderer::DrawGizmo2D()
 {
 	auto& r = GetRenderer();
 	const auto& g = Get2DGameEngine();
@@ -35,12 +36,44 @@ void SoftRenderer::DrawGrid2D()
 		r.DrawFullHorizontalLine(gridBottomLeft.Y - iy * _Grid2DUnit, gridColor);
 	}
 
-	// 월드의 원점
 	ScreenPoint worldOrigin = ScreenPoint::ToScreenCoordinate(_ScreenSize, -viewPos);
 	r.DrawFullHorizontalLine(worldOrigin.Y, LinearColor::Red);
 	r.DrawFullVerticalLine(worldOrigin.X, LinearColor::Green);
 }
 
+// 게임 오브젝트 이름
+static const std::string PlayerGo = "Player";
+
+// 씬 로딩
+void SoftRenderer::LoadScene2D()
+{
+	auto& g = Get2DGameEngine();
+
+	// 플레이어
+	constexpr float playerScale = 30.f;
+	constexpr float squareScale = 20.f;
+
+	GameObject& goPlayer = g.CreateNewGameObject(PlayerGo);
+	goPlayer.SetMesh(GameEngine::QuadMesh);
+	goPlayer.GetTransform().SetScale(Vector2::One * playerScale);
+	goPlayer.SetColor(LinearColor::Red);
+
+	// 고정 시드로 랜덤하게 생성
+	std::mt19937 generator(0);
+	std::uniform_real_distribution<float> dist(-1000.f, 1000.f);
+
+	// 100개의 배경 게임 오브젝트 생성
+	char name[64];
+	for (int i = 0; i < 100; ++i)
+	{
+		std::snprintf(name, sizeof(name), "GameObject%d", i);
+		GameObject& newGo = g.CreateNewGameObject(name);
+		newGo.GetTransform().SetPosition(Vector2(dist(generator), dist(generator)));
+		newGo.GetTransform().SetScale(Vector2::One * squareScale);
+		newGo.SetMesh(GameEngine::QuadMesh);
+		newGo.SetColor(LinearColor::Blue);
+	}
+}
 
 // 게임 로직
 void SoftRenderer::Update2D(float InDeltaSeconds)
@@ -51,9 +84,10 @@ void SoftRenderer::Update2D(float InDeltaSeconds)
 	static float moveSpeed = 200.f;
 	static float rotateSpeed = 180.f;
 	static float scaleSpeed = 180.f;
+	static float minDistance = 1.f;
 
 	// 플레이어 게임 오브젝트 트랜스폼의 변경
-	GameObject& goPlayer = g.GetGameObject(GameEngine::PlayerGo);
+	GameObject& goPlayer = g.GetGameObject(PlayerGo);
 	assert(goPlayer.IsValid());
 
 	// 입력에 따른 플레이어 위치와 크기의 변경
@@ -62,6 +96,23 @@ void SoftRenderer::Update2D(float InDeltaSeconds)
 	transform.AddRotation(input.GetAxis(InputAxis::WAxis) * rotateSpeed * InDeltaSeconds);
 	float newScale = Math::Clamp(transform.GetScale().X + scaleSpeed * input.GetAxis(InputAxis::ZAxis) * InDeltaSeconds, 15.f, 30.f);
 	transform.SetScale(Vector2::One * newScale);
+
+	// 플레이어를 따라다니는 카메라의 트랜스폼
+	TransformComponent& cameraTransform = g.GetMainCamera().GetTransform();
+	Vector2 playerPos = transform.GetPosition();
+	Vector2 cameraPos = cameraTransform.GetPosition();
+	if ((playerPos - cameraPos).SizeSquared() < minDistance * minDistance)
+	{
+		cameraTransform.SetPosition(playerPos);
+	}
+	else
+	{
+		static float lerpSpeed = 2.f;
+		float ratio = lerpSpeed * InDeltaSeconds;
+		ratio = Math::Clamp(ratio, 0.f, 1.f);
+		Vector2 newCameraPos = cameraPos + (playerPos - cameraPos) * ratio;
+		cameraTransform.SetPosition(newCameraPos);
+	}
 }
 
 // 렌더링 로직
@@ -71,10 +122,13 @@ void SoftRenderer::Render2D()
 	const auto& g = Get2DGameEngine();
 
 	// 격자 그리기
-	DrawGrid2D();
+	DrawGizmo2D();
 
 	// 전체 그릴 물체의 수
 	size_t totalObjectCount = g.GetScene().size();
+
+	// 카메라의 뷰 행렬
+	Matrix3x3 viewMatrix = g.GetMainCamera().GetViewMatrix();
 
 	// 랜덤하게 생성된 모든 게임 오브젝트들
 	for (auto it = g.SceneBegin(); it != g.SceneEnd(); ++it)
@@ -88,9 +142,9 @@ void SoftRenderer::Render2D()
 
 		const Mesh& mesh = g.GetMesh(gameObject.GetMeshKey());
 		const TransformComponent& transform = gameObject.GetTransform();
-		Matrix3x3 finalMatrix = transform.GetModelingMatrix();
+		Matrix3x3 finalMatrix = viewMatrix * transform.GetModelingMatrix();
 
-		if (gameObject != GameEngine::PlayerGo)
+		if (gameObject != PlayerGo)
 		{
 			DrawMesh2D(mesh, finalMatrix, gameObject.GetColor());
 
@@ -157,7 +211,7 @@ void SoftRenderer::DrawTriangle2D(std::vector<DD::Vertex2D>& InVertices, const L
 {
 	auto& r = GetRenderer();
 	const GameEngine& g = Get2DGameEngine();
-	const Texture& mainTexture = g.GetTexture(GameEngine::DiffuseTexture);
+	const Texture& mainTexture = g.GetTexture(GameEngine::BaseTexture);
 
 	if (IsWireframeDrawing())
 	{

@@ -6,11 +6,8 @@ using namespace CK::DD;
 // 메시
 const std::size_t GameEngine::QuadMesh = std::hash<std::string>()("SM_Quad");
 
-// 게임 오브젝트
-const std::string GameEngine::PlayerGo("Player");
-
 // 텍스처
-const std::size_t GameEngine::DiffuseTexture = std::hash<std::string>()("Diffuse");
+const std::size_t GameEngine::BaseTexture = std::hash<std::string>()("Base");
 const std::string GameEngine::SteveTexturePath("Steve.png");
 
 struct GameObjectCompare
@@ -48,11 +45,6 @@ bool GameEngine::Init()
 	}
 
 	if (!LoadResources())
-	{
-		return false;
-	}
-
-	if (!LoadScene())
 	{
 		return false;
 	}
@@ -96,7 +88,7 @@ bool GameEngine::LoadResources()
 	quadMesh.CalculateBounds();
 
 	// 텍스처 로딩
-	Texture& diffuseTexture = CreateTexture(GameEngine::DiffuseTexture, GameEngine::SteveTexturePath);
+	Texture& diffuseTexture = CreateTexture(GameEngine::BaseTexture, GameEngine::SteveTexturePath);
 	if (!diffuseTexture.IsIntialized())
 	{
 		return false;
@@ -104,37 +96,6 @@ bool GameEngine::LoadResources()
 
 	return true;
 }
-
-bool GameEngine::LoadScene()
-{
-	// 플레이어
-	constexpr float playerScale = 30.f;
-	constexpr float squareScale = 20.f;
-
-	GameObject& goPlayer = CreateNewGameObject(GameEngine::PlayerGo);
-	goPlayer.SetMesh(GameEngine::QuadMesh);
-	goPlayer.GetTransform().SetScale(Vector2::One * playerScale);
-	goPlayer.SetColor(LinearColor::Red);
-
-	// 고정 시드로 랜덤하게 생성
-	std::mt19937 generator(0);
-	std::uniform_real_distribution<float> dist(-1000.f, 1000.f);
-
-	// 100개의 배경 게임 오브젝트 생성
-	char name[64];
-	for (int i = 0; i < 100; ++i)
-	{
-		std::snprintf(name, sizeof(name), "GameObject%d", i);
-		GameObject& newGo = CreateNewGameObject(name);
-		newGo.GetTransform().SetPosition(Vector2(dist(generator), dist(generator)));
-		newGo.GetTransform().SetScale(Vector2::One * squareScale);
-		newGo.SetMesh(GameEngine::QuadMesh);
-		newGo.SetColor(LinearColor::Blue);
-	}
-
-	return true;
-}
-
 
 Mesh& GameEngine::CreateMesh(const std::size_t& InKey)
 {

@@ -81,22 +81,24 @@ private:
 	FORCEINLINE void SetWireframeColor(const LinearColor& InLinearColor) { _WireframeColor = InLinearColor; }
 
 	// 2D 그래픽스 구현
+	void LoadScene2D();
 	void Update2D(float InDeltaSeconds);
 	void Render2D();
-	void DrawGrid2D();
+	void DrawGizmo2D();
 	void DrawMesh2D(const class DD::Mesh& InMesh, const Matrix3x3& InMatrix, const LinearColor& InColor);
 	void DrawTriangle2D(std::vector<DD::Vertex2D>& InVertices, const LinearColor& InColor, FillMode InFillMode);
 
 	int _Grid2DUnit = 10;
 
 	// 3D 그래픽스 구현
-	void DrawGizmo3D();
+	void LoadScene3D();
 	void Update3D(float InDeltaSeconds);
 	void LateUpdate3D(float InDeltaSeconds);
 	void Render3D();
-
+	void DrawGizmo3D();
 	void DrawMesh3D(const class DDD::Mesh& InMesh, const Matrix4x4& InMatrix, const LinearColor& InColor);
 	void DrawTriangle3D(std::vector<DDD::Vertex3D>& InVertices, const LinearColor& InColor, FillMode InFillMode);
+
 	bool IsDepthBufferDrawing() const { return _CurrentDrawMode == DrawMode::DepthBuffer; }
 	bool IsWireframeDrawing() const { return _CurrentDrawMode == DrawMode::Wireframe; }
 	DrawMode GetDrawMode() const { return _CurrentDrawMode; }

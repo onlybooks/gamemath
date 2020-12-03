@@ -47,7 +47,6 @@ public:
 
 private:
 	bool LoadResources();
-	bool LoadScene();
 
 public: // 주요 키 값
 	// 본
@@ -65,12 +64,8 @@ public: // 주요 키 값
 	static const std::size_t ArrowMesh;
 	static const std::size_t PlaneMesh;
 
-	// 게임 오브젝트
-	static const std::string PlayerGo;
-	static const std::string CameraRigGo;
-
 	// 텍스처
-	static const std::size_t DiffuseTexture;
+	static const std::size_t BaseTexture;
 	static const std::string SteveTexturePath;
 
 private:

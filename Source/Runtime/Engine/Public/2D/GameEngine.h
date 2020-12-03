@@ -47,17 +47,13 @@ public:
 
 private:
 	bool LoadResources();
-	bool LoadScene();
 
-public: // 주요 키 값
+public: 
 	// 메시
 	static const std::size_t QuadMesh;
 
-	// 게임 오브젝트
-	static const std::string PlayerGo;
-
 	// 텍스처
-	static const std::size_t DiffuseTexture;
+	static const std::size_t BaseTexture;
 	static const std::string SteveTexturePath;
 
 private:

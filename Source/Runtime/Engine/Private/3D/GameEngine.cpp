@@ -1,6 +1,5 @@
 
 #include "Precompiled.h"
-#include <random>
 using namespace CK::DDD;
 
 // 본 명칭
@@ -18,12 +17,8 @@ const std::size_t GameEngine::CharacterMesh = std::hash<std::string>()("SK_Steve
 const std::size_t GameEngine::ArrowMesh = std::hash<std::string>()("SM_Arrow");
 const std::size_t GameEngine::PlaneMesh = std::hash<std::string>()("SM_Plane");
 
-// 게임 오브젝트
-const std::string GameEngine::PlayerGo("Player");
-const std::string GameEngine::CameraRigGo("CameraRig");
-
 // 텍스처
-const std::size_t GameEngine::DiffuseTexture = std::hash<std::string>()("Diffuse");
+const std::size_t GameEngine::BaseTexture = std::hash<std::string>()("Base");
 const std::string GameEngine::SteveTexturePath("Steve.png");
 
 struct GameObjectCompare
@@ -61,11 +56,6 @@ bool GameEngine::Init()
 	}
 
 	if (!LoadResources())
-	{
-		return false;
-	}
-
-	if (!LoadScene())
 	{
 		return false;
 	}
@@ -267,45 +257,8 @@ bool GameEngine::LoadResources()
 	}
 
 	// 텍스처 로딩
-	Texture& diffuseTexture = CreateTexture(GameEngine::DiffuseTexture, GameEngine::SteveTexturePath);
+	Texture& diffuseTexture = CreateTexture(GameEngine::BaseTexture, GameEngine::SteveTexturePath);
 	assert(diffuseTexture.IsIntialized());
-
-	return true;
-}
-
-bool GameEngine::LoadScene()
-{
-	// 플레이어
-	constexpr float playerScale = 100.f;
-
-	GameObject& goPlayer = CreateNewGameObject(GameEngine::PlayerGo);
-	goPlayer.SetMesh(GameEngine::CharacterMesh);
-	goPlayer.GetTransform().SetWorldScale(Vector3::One * playerScale);
-
-	// 캐릭터 본을 표시할 화살표
-	Mesh& cm = GetMesh(goPlayer.GetMeshKey());
-	for (const auto& b : cm.GetBones())
-	{
-		if (!b.second.HasParent())
-		{
-			continue;
-		}
-		GameObject& goBoneArrow = CreateNewGameObject(b.second.GetName());
-		goBoneArrow.SetGameObjectType(GameObjectType::Gizmo);
-		goBoneArrow.SetMesh(GameEngine::ArrowMesh);
-		goBoneArrow.SetColor(LinearColor::Red);
-		_BoneGameObjectPtrs.insert({ goBoneArrow.GetName(),&goBoneArrow });
-	}
-
-	// 카메라 릭
-	GameObject& goCameraRig = CreateNewGameObject(GameEngine::CameraRigGo);
-	goCameraRig.GetTransform().SetWorldPosition(Vector3(0.f, 150.f, 0.f));
-
-	// 카메라 설정
-	CameraObject& mainCamera = GetMainCamera();
-	mainCamera.GetTransform().SetWorldPosition(Vector3(-500.f, 800.f, 1000.f));
-	mainCamera.SetParent(goCameraRig);
-	mainCamera.SetLookAtRotation(goCameraRig);
 
 	return true;
 }

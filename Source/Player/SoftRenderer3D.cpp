@@ -4,7 +4,7 @@
 #include <random>
 using namespace CK::DDD;
 
-// 그리드 그리기
+// 기즈모 그리기
 void SoftRenderer::DrawGizmo3D()
 {
 	auto& r = GetRenderer();
@@ -43,6 +43,49 @@ void SoftRenderer::DrawGizmo3D()
 	SetDrawMode(prevShowMode);
 }
 
+// 게임 오브젝트 이름
+static const std::string PlayerGo = "Player";
+static const std::string CameraRigGo = "CameraRig";
+
+// 씬 로딩
+void SoftRenderer::LoadScene3D()
+{
+	GameEngine& g = Get3DGameEngine();
+
+	// 플레이어
+	constexpr float playerScale = 100.f;
+
+	GameObject& goPlayer = g.CreateNewGameObject(PlayerGo);
+	goPlayer.SetMesh(GameEngine::CharacterMesh);
+	goPlayer.GetTransform().SetWorldScale(Vector3::One * playerScale);
+
+	// 캐릭터 본을 표시할 화살표
+	Mesh& cm = g.GetMesh(goPlayer.GetMeshKey());
+	for (const auto& b : cm.GetBones())
+	{
+		if (!b.second.HasParent())
+		{
+			continue;
+		}
+		GameObject& goBoneArrow = g.CreateNewGameObject(b.second.GetName());
+		goBoneArrow.SetGameObjectType(GameObjectType::Gizmo);
+		goBoneArrow.SetMesh(GameEngine::ArrowMesh);
+		goBoneArrow.SetColor(LinearColor::Red);
+		g.GetBoneObjectPtrs().insert({ goBoneArrow.GetName(),&goBoneArrow });
+	}
+
+	// 카메라 릭
+	GameObject& goCameraRig = g.CreateNewGameObject(CameraRigGo);
+	goCameraRig.GetTransform().SetWorldPosition(Vector3(0.f, 150.f, 0.f));
+
+	// 카메라 설정
+	CameraObject& mainCamera = g.GetMainCamera();
+	mainCamera.GetTransform().SetWorldPosition(Vector3(-500.f, 800.f, 1000.f));
+	mainCamera.SetParent(goCameraRig);
+	mainCamera.SetLookAtRotation(goCameraRig);
+}
+
+
 // 게임 로직
 void SoftRenderer::Update3D(float InDeltaSeconds)
 {
@@ -56,8 +99,8 @@ void SoftRenderer::Update3D(float InDeltaSeconds)
 	static float moveSpeed = 500.f;
 
 	// 게임 로직에서 사용할 게임 오브젝트 레퍼런스
-	GameObject& goPlayer = g.GetGameObject(GameEngine::PlayerGo);
-	GameObject& goCameraRig = g.GetGameObject(GameEngine::CameraRigGo);
+	GameObject& goPlayer = g.GetGameObject(PlayerGo);
+	GameObject& goCameraRig = g.GetGameObject(CameraRigGo);
 	CameraObject& camera = g.GetMainCamera();
 
 	// 입력에 따른 이동
@@ -91,7 +134,7 @@ void SoftRenderer::LateUpdate3D(float InDeltaSeconds)
 	float neckCurve = sinf(neckCurrent) * neckDegree;
 
 	// 캐릭터 레퍼런스
-	GameObject& goPlayer = g.GetGameObject(GameEngine::PlayerGo);
+	GameObject& goPlayer = g.GetGameObject(PlayerGo);
 
 	// 캐릭터 메시
 	Mesh& m = g.GetMesh(goPlayer.GetMeshKey());
@@ -198,7 +241,7 @@ void SoftRenderer::Render3D()
 		DrawMesh3D(mesh, finalMatrix, LinearColor::White);
 
 		// 플레이어 위치 정보
-		if (gameObject == GameEngine::PlayerGo)
+		if (gameObject == PlayerGo)
 		{
 			r.PushStatisticText("Player:" + gameObject.GetTransform().GetWorldPosition().ToString());
 		}
@@ -346,7 +389,7 @@ void SoftRenderer::DrawTriangle3D(std::vector<Vertex3D>& InVertices, const Linea
 	}
 	else
 	{
-		const Texture& mainTexture = g.GetTexture(GameEngine::DiffuseTexture);
+		const Texture& mainTexture = g.GetTexture(GameEngine::BaseTexture);
 
 		// 삼각형 칠하기
 		// 삼각형의 영역 설정
