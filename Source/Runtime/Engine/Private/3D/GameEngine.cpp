@@ -256,7 +256,7 @@ bool GameEngine::LoadResources()
 		}
 	}
 
-	// 텍스처 로딩
+	// 텍스쳐 로딩
 	Texture& diffuseTexture = CreateTexture(GameEngine::BaseTexture, GameEngine::SteveTexturePath);
 	assert(diffuseTexture.IsIntialized());
 

@@ -34,8 +34,7 @@ FORCEINLINE constexpr BoundCheckResult Frustum::CheckBound(const Vector3& InPoin
 		else if (Math::EqualsInTolerance(p.Distance(InPoint), 0.f))
 		{
 			return BoundCheckResult::Intersect;
-		}
-	
+		}	
 	}
 
 	return BoundCheckResult::Inside;
@@ -53,7 +52,6 @@ FORCEINLINE constexpr BoundCheckResult Frustum::CheckBound(const Sphere& InSpher
 		{
 			return BoundCheckResult::Intersect;
 		}
-
 	}
 
 	return BoundCheckResult::Inside;

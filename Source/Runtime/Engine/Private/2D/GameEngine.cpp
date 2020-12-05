@@ -88,8 +88,8 @@ bool GameEngine::LoadResources()
 	quadMesh.CalculateBounds();
 
 	// 텍스처 로딩
-	Texture& diffuseTexture = CreateTexture(GameEngine::BaseTexture, GameEngine::SteveTexturePath);
-	if (!diffuseTexture.IsIntialized())
+	Texture& baseTexture = CreateTexture(GameEngine::BaseTexture, GameEngine::SteveTexturePath);
+	if (!baseTexture.IsIntialized())
 	{
 		return false;
 	}

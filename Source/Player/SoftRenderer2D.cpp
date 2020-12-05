@@ -42,7 +42,7 @@ void SoftRenderer::DrawGizmo2D()
 }
 
 // 게임 오브젝트 이름
-static const std::string PlayerGo = "Player";
+static const std::string PlayerGo("Player");
 
 // 씬 로딩
 void SoftRenderer::LoadScene2D()
@@ -143,18 +143,13 @@ void SoftRenderer::Render2D()
 		const Mesh& mesh = g.GetMesh(gameObject.GetMeshKey());
 		const TransformComponent& transform = gameObject.GetTransform();
 		Matrix3x3 finalMatrix = viewMatrix * transform.GetModelingMatrix();
+		DrawMesh2D(mesh, finalMatrix, gameObject.GetColor());
 
-		if (gameObject != PlayerGo)
+		if (gameObject == PlayerGo)
 		{
-			DrawMesh2D(mesh, finalMatrix, gameObject.GetColor());
-
 			r.PushStatisticText("Player Position : " + transform.GetPosition().ToString());
 			r.PushStatisticText("Player Rotation : " + std::to_string(transform.GetRotation()) + " (deg)");
 			r.PushStatisticText("Player Scale : " + std::to_string(transform.GetScale().X));
-		}
-		else
-		{
-			DrawMesh2D(mesh, finalMatrix, gameObject.GetColor());
 		}
 	}
 
@@ -211,7 +206,7 @@ void SoftRenderer::DrawTriangle2D(std::vector<DD::Vertex2D>& InVertices, const L
 {
 	auto& r = GetRenderer();
 	const GameEngine& g = Get2DGameEngine();
-	const Texture& mainTexture = g.GetTexture(GameEngine::BaseTexture);
+	const Texture& texture = g.GetTexture(GameEngine::BaseTexture);
 
 	if (IsWireframeDrawing())
 	{
@@ -242,8 +237,8 @@ void SoftRenderer::DrawTriangle2D(std::vector<DD::Vertex2D>& InVertices, const L
 		float udotu = u.Dot(u);
 		float denominator = udotv * udotv - vdotv * udotu;
 
-		// 퇴화 삼각형 판정.
-		if (Math::EqualsInTolerance(denominator, 0.f))
+		// 퇴화 삼각형이면 그리기 생략
+		if (denominator == 0.f)
 		{
 			return;
 		}
@@ -276,7 +271,7 @@ void SoftRenderer::DrawTriangle2D(std::vector<DD::Vertex2D>& InVertices, const L
 				if (((s >= 0.f) && (s <= 1.f)) && ((t >= 0.f) && (t <= 1.f)) && ((oneMinusST >= 0.f) && (oneMinusST <= 1.f)))
 				{
 					Vector2 targetUV = InVertices[0].UV * oneMinusST + InVertices[1].UV * s + InVertices[2].UV * t;
-					r.DrawPoint(fragment, FragmentShader2D(mainTexture.GetSample(targetUV), LinearColor::White));
+					r.DrawPoint(fragment, FragmentShader2D(texture.GetSample(targetUV), LinearColor::White));
 				}
 			}
 		}
