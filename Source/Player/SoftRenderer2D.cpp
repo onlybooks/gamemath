@@ -79,7 +79,59 @@ void SoftRenderer::Render2D()
 	DrawGizmo2D();
 
 	// 렌더링 로직의 로컬 변수
+	static float halfSize = 100.f;
+	static std::vector<Vector2> squares;
+	static float currentDegree = 0.f;
 
+	currentDegree += deltaDegree;
+
+	// 사각형을 구성하는 점을 생성
+	if (squares.empty())
+	{
+		for (float x = -halfSize; x <= halfSize; x += 0.25f)
+		{
+			for (float y = -halfSize; y <= halfSize; y += 0.25f)
+			{
+				squares.push_back(Vector2(x, y));
+			}
+		}
+	}
+
+	// 각도에 해당하는 사인과 코사인 함수 얻기
+	float sin = 0.f, cos = 0.f;
+	Math::GetSinCos(sin, cos, currentDegree);
+
+	// 현재 화면의 크기로부터 길이를 비교할 기준양 정하기
+	static float maxLength = Vector2(_ScreenSize.X, _ScreenSize.Y).Size() * 0.5f;
+
+	// 원을 구성하는 점을 그린다.
+	HSVColor hsv(0.f, 1.f, 0.85f);
+	for (auto const& v : squares)
+	{
+		// 극 좌표계로 변경한다.
+		Vector2 polarV = v.ToPolarCoordinate();
+
+		// 극좌표계의 각 정보로부터 색상을 결정한다.
+		if (polarV.Y < 0.f)
+		{
+			polarV.Y += Math::TwoPI;
+		}
+		hsv.H = polarV.Y / Math::TwoPI;
+
+		// 극좌표계의 크기 정보로부터 회전양을 결정한다.
+		float ratio = polarV.X / maxLength;
+		float weight = Math::Lerp(1.f, 5.f, ratio);
+
+		// 극좌표계를 사용해 회전을 부여한다.
+		polarV.Y += Math::Deg2Rad(currentDegree) * weight;
+
+		// 최종 값을 데카르트좌표계로 변환한다.
+		Vector2 cartesianV = polarV.ToCartesianCoordinate();
+		r.DrawPoint(cartesianV, hsv.ToLinearColor());
+	}
+
+	// 현재 위치와 회전을 화면에 출력
+	r.PushStatisticText(std::string("Degree : ") + std::to_string(currentDegree));
 }
 
 // 메시를 그리는 함수
