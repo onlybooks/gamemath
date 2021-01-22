@@ -54,7 +54,7 @@ void SoftRenderer::LoadScene2D()
 
 // 게임 로직과 렌더링 로직이 공유하는 변수
 Vector2 deltaPosition;
-float currentScale = 1.f;
+float currentScale = 10.f;
 
 // 게임 로직을 담당하는 함수
 void SoftRenderer::Update2D(float InDeltaSeconds)
@@ -65,23 +65,9 @@ void SoftRenderer::Update2D(float InDeltaSeconds)
 
 	// 게임 로직의 로컬 변수
 	static float moveSpeed = 100.f;
-	static float scaleMin = 10.f;
-	static float scaleMax = 20.f;
-	static float scaleSpeed = 20.f;
-	static float duration = 1.5f;
-	static float elapsedTime = 0.f;
-
-	// 경과 시간과 사인함수를 활용한 [0,1]값의 생성
-	elapsedTime += InDeltaSeconds;
-	elapsedTime = Math::FMod(elapsedTime, duration);
-	float currentRad = (elapsedTime / duration) * Math::TwoPI;
-	float alpha = (sinf(currentRad) + 1) * 0.5f;
 
 	Vector2 inputVector = Vector2(input.GetAxis(InputAxis::XAxis), input.GetAxis(InputAxis::YAxis)).GetNormalize();
 	deltaPosition = inputVector * moveSpeed * InDeltaSeconds;
-
-	// [0,1]을 활용해 현재 스케일 값을 계산
-	currentScale = Math::Lerp(scaleMin, scaleMax, alpha);
 }
 
 // 렌더링 로직을 담당하는 함수
