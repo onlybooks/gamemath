@@ -16,10 +16,10 @@ bool TransformComponent::RemoveFromParent()
 		return false;
 	}
 
-	// 부모 트랜스폼에서 자식 정보를 제거한다.
+	// 부모 트랜스폼에서 자식 정보를 제거
 	parent.GetChildren().erase(it);
 
-	// 자신에게서 부모 정보를 제거한다.
+	// 자신에게서 부모 정보를 제거
 	_ParentPtr = nullptr;
 	return true;
 }
@@ -31,7 +31,7 @@ bool TransformComponent::SetRoot()
 		return false;
 	}
 
-	// 로컬 정보를 월드 정보로 변경한다.
+	// 로컬 정보를 월드 정보로 변경
 	UpdateLocal();
 	return true;
 }
@@ -50,7 +50,7 @@ FORCEINLINE TransformComponent& TransformComponent::GetRoot()
 
 bool TransformComponent::SetParent(TransformComponent& InTransform)
 {
-	// 현재 노드를 부모로부터 분리한다. 
+	// 현재 노드를 부모로부터 분리
 	if (!SetRoot())
 	{
 		return false;
@@ -68,13 +68,13 @@ bool TransformComponent::SetParent(TransformComponent& InTransform)
 	_ParentPtr = &InTransform;
 	TransformComponent& newParent = *_ParentPtr;
 
-	// 새로운 부모에 맞춰 자신의 로컬 정보를 업데이트한다.
+	// 자신의 로컬과 모든 자식의 월드를 업데이트한다.
 	UpdateLocal();
 
 	return true;
 }
 
-// 월드 정보, 혹은 부모가 변경되면 이를 기반으로 로컬 정보를 변경
+// 부모의 월드 정보와 자신의 월드 정보를 비교해 로컬 정보를 갱신
 void TransformComponent::UpdateLocal()
 {
 	if (HasParent())
@@ -88,7 +88,7 @@ void TransformComponent::UpdateLocal()
 	}
 }
 
-// 로컬 정보가 업데이트 되어서 월드 정보만 다시 계산
+// 부모의 월드 정보를 기준으로 자신의 로컬 정보를 추가해 월드 정보를 갱신
 void TransformComponent::UpdateWorld()
 {
 	// 자신의 월드 정보 업데이트
@@ -102,7 +102,7 @@ void TransformComponent::UpdateWorld()
 		_WorldTransform = _LocalTransform;
 	}
 
-	// 월드 정보 변경 시 자식의 월드 정보도 업데이트 ( 로컬 정보는 변함 없음. )
+	// 자신의 월드 정보 변경 시 자식의 월드 정보도 함께 업데이트
 	UpdateChildrenWorld();
 }
 

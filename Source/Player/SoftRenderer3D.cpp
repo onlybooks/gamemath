@@ -4,15 +4,14 @@
 #include <random>
 using namespace CK::DDD;
 
-// 기즈모 그리기
+// 기즈모를 그리는 함수
 void SoftRenderer::DrawGizmo3D()
 {
-
 	auto& r = GetRenderer();
 	const GameEngine& g = Get3DGameEngine();
 
 	// 뷰 기즈모 그리기
-	std::vector<Vertex3D> viewGizmo = {
+	std::vector<Vertex3D> viewGizmo = { 
 		Vertex3D(Vector4(Vector3::Zero)),
 		Vertex3D(Vector4(Vector3::UnitX * _GizmoUnitLength)),
 		Vertex3D(Vector4(Vector3::UnitY * _GizmoUnitLength)),
@@ -44,11 +43,11 @@ void SoftRenderer::DrawGizmo3D()
 	SetDrawMode(prevShowMode);
 }
 
-// 게임 오브젝트 이름
-const std::string PlayerGo("Player");
-const std::string CameraRigGo("CameraRig");
+// 게임 오브젝트 목록
+static const std::string PlayerGo = "Player";
+static const std::string CameraRigGo = "CameraRig";
 
-// 씬 로딩
+// 최초 씬 로딩을 담당하는 함수
 void SoftRenderer::LoadScene3D()
 {
 	GameEngine& g = Get3DGameEngine();
@@ -58,7 +57,6 @@ void SoftRenderer::LoadScene3D()
 
 	GameObject& goPlayer = g.CreateNewGameObject(PlayerGo);
 	goPlayer.SetMesh(GameEngine::CharacterMesh);
-	goPlayer.SetColor(LinearColor::White);
 	goPlayer.GetTransform().SetWorldScale(Vector3::One * playerScale);
 
 	// 캐릭터 본을 표시할 화살표
@@ -87,17 +85,16 @@ void SoftRenderer::LoadScene3D()
 	mainCamera.SetLookAtRotation(goCameraRig);
 }
 
-// 실습을 위한 변수
+// 게임 로직과 렌더링 로직이 공유하는 변수
 
-
-// 게임 로직
+// 게임 로직을 담당하는 함수
 void SoftRenderer::Update3D(float InDeltaSeconds)
 {
-	// 기본 레퍼런스
+	// 게임 로직에서 사용하는 모듈 내 주요 레퍼런스
 	GameEngine& g = Get3DGameEngine();
 	const InputManager& input = g.GetInputManager();
 
-	// 기본 설정 변수
+	// 게임 로직의 로컬 변수
 	static float fovSpeed = 100.f;
 	static float rotateSpeed = 180.f;
 	static float moveSpeed = 500.f;
@@ -116,13 +113,13 @@ void SoftRenderer::Update3D(float InDeltaSeconds)
 	camera.SetFOV(newFOV);
 }
 
-// 캐릭터 애니메이션 로직
+// 애니메이션 로직을 담당하는 함수
 void SoftRenderer::LateUpdate3D(float InDeltaSeconds)
 {
-	// 기본 레퍼런스
+	// 애니메이션 로직에서 사용하는 모듈 내 주요 레퍼런스
 	GameEngine& g = Get3DGameEngine();
 
-	// 기본 설정 변수
+	// 애니메이션 로직의 로컬 변수
 	static float elapsedTime = 0.f;
 	static float neckLength = 5.f;
 	static float armLegLength = 0.7f;
@@ -162,23 +159,20 @@ void SoftRenderer::LateUpdate3D(float InDeltaSeconds)
 	rightLegBone.GetTransform().SetLocalRotation(Rotator(0.f, 0.f, armLegCurve));
 }
 
-// 렌더링 로직
+// 렌더링 로직을 담당하는 함수
 void SoftRenderer::Render3D()
 {
+	// 렌더링 로직에서 사용하는 모듈 내 주요 레퍼런스
 	const GameEngine& g = Get3DGameEngine();
 	auto& r = GetRenderer();
-
 	const CameraObject& mainCamera = g.GetMainCamera();
-	const Matrix4x4 pvMatrix = mainCamera.GetPerspectiveViewMatrix();
 
-	// 기즈모 그리기
+	// 배경에 기즈모 그리기
 	DrawGizmo3D();
 
-	// 절두체 컬링 테스트를 위한 통계 변수
-	size_t totalObjects = g.GetScene().size();
-	size_t culledObjects = 0;
-	size_t intersectedObjects = 0;
-	size_t renderedObjects = 0;
+	// 렌더링 로직의 로컬 변수
+	const Matrix4x4 pvMatrix = mainCamera.GetPerspectiveViewMatrix();
+	const ScreenPoint viewportSize = mainCamera.GetViewportSize();
 
 	for (auto it = g.SceneBegin(); it != g.SceneEnd(); ++it)
 	{
@@ -214,13 +208,7 @@ void SoftRenderer::Render3D()
 		auto checkResult = frustumFromMatrix.CheckBound(boxBound);
 		if (checkResult == BoundCheckResult::Outside)
 		{
-			culledObjects++;
 			continue;
-		}
-		else if (checkResult == BoundCheckResult::Intersect)
-		{
-			// 겹친 게임 오브젝트를 통계에 포함
-			intersectedObjects++;
 		}
 
 		// 스키닝이고 WireFrame인 경우 본을 그리기
@@ -253,10 +241,7 @@ void SoftRenderer::Render3D()
 		}
 
 		// 메시 그리기
-		DrawMesh3D(mesh, finalMatrix, gameObject.GetColor());
-
-		// 그린 물체를 통계에 포함
-		renderedObjects++;
+		DrawMesh3D(mesh, finalMatrix, LinearColor::White);
 
 		// 플레이어 위치 정보
 		if (gameObject == PlayerGo)
@@ -266,6 +251,7 @@ void SoftRenderer::Render3D()
 	}
 }
 
+// 메시를 그리는 함수
 void SoftRenderer::DrawMesh3D(const Mesh& InMesh, const Matrix4x4& InMatrix, const LinearColor& InColor)
 {
 	size_t vertexCount = InMesh.GetVertices().size();
@@ -360,6 +346,7 @@ void SoftRenderer::DrawMesh3D(const Mesh& InMesh, const Matrix4x4& InMatrix, con
 	}
 }
 
+// 삼각형을 그리는 함수
 void SoftRenderer::DrawTriangle3D(std::vector<Vertex3D>& InVertices, const LinearColor& InColor, FillMode InFillMode)
 {
 	auto& r = GetRenderer();
@@ -396,7 +383,7 @@ void SoftRenderer::DrawTriangle3D(std::vector<Vertex3D>& InVertices, const Linea
 		}
 
 		LinearColor finalColor = _WireframeColor;
-		if (InColor == LinearColor::Red)
+		if (InColor != LinearColor::White)
 		{
 			finalColor = InColor;
 		}
@@ -490,12 +477,11 @@ void SoftRenderer::DrawTriangle3D(std::vector<Vertex3D>& InVertices, const Linea
 
 					if (IsDepthBufferDrawing())
 					{
-						float grayScale = (newDepth + 1.f) * 0.5f;
 						float n = g.GetMainCamera().GetNearZ();
 						float f = g.GetMainCamera().GetFarZ();
 
 						// 시각화를 위해 선형화된 흑백 값으로 변환
-						grayScale = (invZ - n) / (f - n);
+						float grayScale = (invZ - n) / (f - n);
 
 						// 뎁스 버퍼 그리기
 						r.DrawPoint(fragment, LinearColor::White * grayScale);
@@ -511,3 +497,4 @@ void SoftRenderer::DrawTriangle3D(std::vector<Vertex3D>& InVertices, const Linea
 		}
 	}
 }
+

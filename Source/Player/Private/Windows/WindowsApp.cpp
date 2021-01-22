@@ -7,7 +7,7 @@
 int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow)
 {
 	ScreenPoint defScreenSize(800, 600);
-	SoftRenderer instance(GameEngineType::DDD, new WindowsRSI());
+	SoftRenderer instance(GameEngineType::DD, new WindowsRSI());
 	WindowsPlayer::gOnResizeFunc = [&instance](const ScreenPoint& InNewScreenSize) { 
 		if (InNewScreenSize.HasZero()) {
 			return;

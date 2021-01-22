@@ -256,9 +256,9 @@ bool GameEngine::LoadResources()
 		}
 	}
 
-	// 텍스쳐 로딩
-	Texture& diffuseTexture = CreateTexture(GameEngine::BaseTexture, GameEngine::SteveTexturePath);
-	assert(diffuseTexture.IsIntialized());
+	// 텍스처 로딩
+	Texture& baseTexture = CreateTexture(GameEngine::BaseTexture, GameEngine::SteveTexturePath);
+	assert(baseTexture.IsIntialized());
 
 	return true;
 }

@@ -123,6 +123,5 @@ FORCEINLINE Matrix4x4 CameraObject::GetPerspectiveViewMatrix() const
 	);
 }
 
-
 }
 }
