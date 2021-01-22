@@ -53,7 +53,8 @@ void SoftRenderer::LoadScene2D()
 }
 
 // 게임 로직과 렌더링 로직이 공유하는 변수
-
+Vector2 deltaPosition;
+float currentScale = 1.f;
 
 // 게임 로직을 담당하는 함수
 void SoftRenderer::Update2D(float InDeltaSeconds)
@@ -63,7 +64,15 @@ void SoftRenderer::Update2D(float InDeltaSeconds)
 	const InputManager& input = g.GetInputManager();
 
 	// 게임 로직의 로컬 변수
+	static float moveSpeed = 100.f;
+	static float scaleMin = 10.f;
+	static float scaleMax = 20.f;
+	static float scaleSpeed = 20.f;
 
+	Vector2 inputVector = Vector2(input.GetAxis(InputAxis::XAxis), input.GetAxis(InputAxis::YAxis)).GetNormalize();
+	deltaPosition = inputVector * moveSpeed * InDeltaSeconds;
+	float deltaScale = input.GetAxis(InputAxis::ZAxis) * scaleSpeed * InDeltaSeconds;
+	currentScale = Math::Clamp(currentScale + deltaScale, scaleMin, scaleMax);
 }
 
 // 렌더링 로직을 담당하는 함수
@@ -77,7 +86,36 @@ void SoftRenderer::Render2D()
 	DrawGizmo2D();
 
 	// 렌더링 로직의 로컬 변수
+	static Vector2 currentPosition;
+	currentPosition += deltaPosition;
 
+	// 하트를 구성하는 점 생성
+	static float increment = 0.001f;
+	float rad = 0.f;
+	static std::vector<Vector2> hearts;
+	if (hearts.empty())
+	{
+		for (rad = 0.f; rad < Math::TwoPI; rad += increment)
+		{
+			float sin = sinf(rad);
+			float cos = cosf(rad);
+			float cos2 = cosf(2 * rad);
+			float cos3 = cosf(3 * rad);
+			float cos4 = cosf(4 * rad);
+			float x = 16.f * sin * sin * sin;
+			float y = 13 * cos - 5 * cos2 - 2 * cos3 - cos4;
+			hearts.push_back(Vector2(x, y));
+		}
+	}
+
+	for (auto const& v : hearts)
+	{
+		r.DrawPoint(v * currentScale + currentPosition, LinearColor::Blue);
+	}
+
+	// 현재 위치와 스케일을 화면에 출력
+	r.PushStatisticText(std::string("Position : ") + currentPosition.ToString());
+	r.PushStatisticText(std::string("Scale : ") + std::to_string(currentScale));
 }
 
 // 메시를 그리는 함수
