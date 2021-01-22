@@ -108,27 +108,6 @@ void SoftRenderer::Render2D()
 		}
 	}
 
-	// 각도에 해당하는 사인과 코사인 함수 얻기
-	float sin = 0.f, cos = 0.f;
-	Math::GetSinCos(sin, cos, currentDegree);
-
-	// 각 값을 초기화한 후 색상을 증가시키면서 점에 대응
-	rad = 0.f;
-	HSVColor hsv(0.f, 1.f, 0.85f);
-	for (auto const& v : hearts)
-	{
-		// 1. 점에 크기를 적용한다.
-		Vector2 scaledV = v * currentScale;
-		// 2. 크기가 변한 점을 회전시킨다.
-		Vector2 rotatedV = Vector2(scaledV.X * cos - scaledV.Y * sin, scaledV.X * sin + scaledV.Y * cos);
-		// 3. 회전시킨 점을 이동한다.
-		Vector2 translatedV = rotatedV + currentPosition;
-
-		hsv.H = rad / Math::TwoPI;
-		r.DrawPoint(translatedV, hsv.ToLinearColor());
-		rad += increment;
-	}
-
 	// 현재 위치와 스케일을 화면에 출력
 	r.PushStatisticText(std::string("Position : ") + currentPosition.ToString());
 	r.PushStatisticText(std::string("Scale : ") + std::to_string(currentScale));
