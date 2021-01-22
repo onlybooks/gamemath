@@ -108,6 +108,38 @@ void SoftRenderer::Render2D()
 		}
 	}
 
+	// 각도에 해당하는 사인과 코사인 함수 얻기
+	float sin = 0.f, cos = 0.f;
+	Math::GetSinCos(sin, cos, currentDegree);
+
+	// 회전 행렬의 기저 벡터와 행렬
+	Vector2 rBasis1(cos, sin);
+	Vector2 rBasis2(-sin, cos);
+	Matrix2x2 rMatrix(rBasis1, rBasis2);
+
+	// 크기 행렬의 기저 벡터와 행렬
+	Vector2 sBasis1 = Vector2::UnitX * currentScale;
+	Vector2 sBasis2 = Vector2::UnitY * currentScale;
+	Matrix2x2 sMatrix(sBasis1, sBasis2);
+
+	// 크기, 회전의 순서로 진행하는 합성 변환 행렬의 계산
+	Matrix2x2 finalMatrix = rMatrix * sMatrix;
+
+	// 각 값을 초기화한 후 색상을 증가시키면서 점에 대응
+	rad = 0.f;
+	HSVColor hsv(0.f, 1.f, 0.85f);
+	for (auto const& v : hearts)
+	{
+		// 1. 점에 행렬을 적용한다.
+		Vector2 trasnformedV = finalMatrix * v;
+		// 2. 변환된 점을 이동한다.
+		Vector2 translatedV = trasnformedV + currentPosition;
+
+		hsv.H = rad / Math::TwoPI;
+		r.DrawPoint(translatedV, hsv.ToLinearColor());
+		rad += increment;
+	}
+
 	// 현재 위치와 스케일을 화면에 출력
 	r.PushStatisticText(std::string("Position : ") + currentPosition.ToString());
 	r.PushStatisticText(std::string("Scale : ") + std::to_string(currentScale));
