@@ -4,7 +4,7 @@
 #include <random>
 using namespace CK::DD;
 
-// 기즈모 그리기
+// 격자를 그리는 함수
 void SoftRenderer::DrawGizmo2D()
 {
 	auto& r = GetRenderer();
@@ -41,12 +41,13 @@ void SoftRenderer::DrawGizmo2D()
 	r.DrawFullVerticalLine(worldOrigin.X, LinearColor::Green);
 }
 
-// 게임 오브젝트 이름
+// 게임 오브젝트 목록
 static const std::string PlayerGo("Player");
 
-// 씬 로딩
+// 최초 씬 로딩을 담당하는 함수
 void SoftRenderer::LoadScene2D()
 {
+	// 최초 씬 로딩에서 사용하는 모듈 내 주요 레퍼런스
 	auto& g = Get2DGameEngine();
 
 	// 플레이어
@@ -75,12 +76,17 @@ void SoftRenderer::LoadScene2D()
 	}
 }
 
-// 게임 로직
+// 게임 로직과 렌더링 로직이 공유하는 변수
+
+
+// 게임 로직을 담당하는 함수
 void SoftRenderer::Update2D(float InDeltaSeconds)
 {
+	// 게임 로직에서 사용하는 모듈 내 주요 레퍼런스
 	auto& g = Get2DGameEngine();
 	const InputManager& input = g.GetInputManager();
 
+	// 게임 로직의 로컬 변수
 	static float moveSpeed = 200.f;
 	static float rotateSpeed = 180.f;
 	static float scaleSpeed = 180.f;
@@ -115,14 +121,17 @@ void SoftRenderer::Update2D(float InDeltaSeconds)
 	}
 }
 
-// 렌더링 로직
+// 렌더링 로직을 담당하는 함수
 void SoftRenderer::Render2D()
 {
+	// 렌더링 로직에서 사용하는 모듈 내 주요 레퍼런스
 	auto& r = GetRenderer();
 	const auto& g = Get2DGameEngine();
 
-	// 격자 그리기
+	// 배경에 격자 그리기
 	DrawGizmo2D();
+
+	// 렌더링 로직의 로컬 변수
 
 	// 전체 그릴 물체의 수
 	size_t totalObjectCount = g.GetScene().size();
@@ -156,6 +165,7 @@ void SoftRenderer::Render2D()
 	r.PushStatisticText("Total Game Objects : " + std::to_string(totalObjectCount));
 }
 
+// 메시를 그리는 함수
 void SoftRenderer::DrawMesh2D(const class DD::Mesh& InMesh, const Matrix3x3& InMatrix, const LinearColor& InColor)
 {
 	size_t vertexCount = InMesh.GetVertices().size();
@@ -202,6 +212,7 @@ void SoftRenderer::DrawMesh2D(const class DD::Mesh& InMesh, const Matrix3x3& InM
 	}
 }
 
+// 삼각형을 그리는 함수
 void SoftRenderer::DrawTriangle2D(std::vector<DD::Vertex2D>& InVertices, const LinearColor& InColor, FillMode InFillMode)
 {
 	auto& r = GetRenderer();
