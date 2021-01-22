@@ -53,7 +53,6 @@ void SoftRenderer::LoadScene2D()
 }
 
 // 게임 로직과 렌더링 로직이 공유하는 변수
-Vector2 deltaPosition;
 float currentScale = 10.f;
 float deltaDegree = 0.f;
 
@@ -65,12 +64,11 @@ void SoftRenderer::Update2D(float InDeltaSeconds)
 	const InputManager& input = g.GetInputManager();
 
 	// 게임 로직의 로컬 변수
-	static float moveSpeed = 100.f;
+	static float scaleMin = 5.f;
+	static float scaleMax = 10.f;
+	static float scaleSpeed = 10.f;
 	static float rotateSpeed = 180.f;
 
-	Vector2 inputVector = Vector2(input.GetAxis(InputAxis::XAxis), input.GetAxis(InputAxis::YAxis)).GetNormalize();
-	deltaPosition = inputVector * moveSpeed * InDeltaSeconds;
-	deltaDegree = input.GetAxis(InputAxis::WAxis) * rotateSpeed * InDeltaSeconds;
 }
 
 // 렌더링 로직을 담당하는 함수
@@ -84,9 +82,8 @@ void SoftRenderer::Render2D()
 	DrawGizmo2D();
 
 	// 렌더링 로직의 로컬 변수
-	static Vector2 currentPosition;
 	static float currentDegree = 0.f;
-	currentPosition += deltaPosition;
+
 	currentDegree += deltaDegree;
 
 	// 하트를 구성하는 점 생성
@@ -108,10 +105,6 @@ void SoftRenderer::Render2D()
 		}
 	}
 
-	// 현재 위치와 스케일을 화면에 출력
-	r.PushStatisticText(std::string("Position : ") + currentPosition.ToString());
-	r.PushStatisticText(std::string("Scale : ") + std::to_string(currentScale));
-	r.PushStatisticText(std::string("Degree : ") + std::to_string(currentDegree));
 }
 
 // 메시를 그리는 함수
