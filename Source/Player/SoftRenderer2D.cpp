@@ -97,7 +97,6 @@ void SoftRenderer::Render2D()
 	static float increment = 0.001f;
 	static std::vector<Vector2> hearts;
 	HSVColor hsv(0.f, 1.f, 0.85f);
-	float sin = 0.f, cos = 0.f;
 
 	// 하트를 구성하는 점 생성
 	if (hearts.empty())
@@ -116,6 +115,7 @@ void SoftRenderer::Render2D()
 	}
 
 	// 각도에 해당하는 사인과 코사인 값 얻기
+	float sin = 0.f, cos = 0.f;
 	Math::GetSinCos(sin, cos, currentDegree);
 
 	// 각 값을 초기화한 후 색상을 증가시키면서 점에 대응
