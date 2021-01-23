@@ -52,9 +52,10 @@ void SoftRenderer::LoadScene2D()
 
 }
 
+
 // 게임 로직과 렌더링 로직이 공유하는 변수
 float currentScale = 10.f;
-float deltaDegree = 0.f;
+float currentDegree = 0.f;
 
 // 게임 로직을 담당하는 함수
 void SoftRenderer::Update2D(float InDeltaSeconds)
@@ -65,10 +66,16 @@ void SoftRenderer::Update2D(float InDeltaSeconds)
 
 	// 게임 로직의 로컬 변수
 	static float scaleMin = 5.f;
-	static float scaleMax = 10.f;
-	static float scaleSpeed = 10.f;
+	static float scaleMax = 20.f;
+	static float scaleSpeed = 20.f;
 	static float rotateSpeed = 180.f;
 
+	float deltaScale = input.GetAxis(InputAxis::ZAxis) * scaleSpeed * InDeltaSeconds;
+	float deltaDegree = input.GetAxis(InputAxis::WAxis) * rotateSpeed * InDeltaSeconds;
+
+	// 물체의 최종 상태 설정
+	currentScale = Math::Clamp(currentScale + deltaScale, scaleMin, scaleMax);
+	currentDegree += deltaDegree;
 }
 
 // 렌더링 로직을 담당하는 함수
@@ -82,14 +89,12 @@ void SoftRenderer::Render2D()
 	DrawGizmo2D();
 
 	// 렌더링 로직의 로컬 변수
-	static float currentDegree = 0.f;
-
-	currentDegree += deltaDegree;
+	float rad = 0.f;
+	static float increment = 0.001f;
+	static std::vector<Vector2> hearts;
+	HSVColor hsv(0.f, 1.f, 0.85f);
 
 	// 하트를 구성하는 점 생성
-	static float increment = 0.001f;
-	float rad = 0.f;
-	static std::vector<Vector2> hearts;
 	if (hearts.empty())
 	{
 		for (rad = 0.f; rad < Math::TwoPI; rad += increment)
