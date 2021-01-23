@@ -66,7 +66,9 @@ void SoftRenderer::Update2D(float InDeltaSeconds)
 	static float moveSpeed = 100.f;
 
 	Vector2 inputVector = Vector2(input.GetAxis(InputAxis::XAxis), input.GetAxis(InputAxis::YAxis));	
-	float deltaPosition = inputVector * moveSpeed * InDeltaSeconds;
+	Vector2 deltaPosition = inputVector * moveSpeed * InDeltaSeconds;
+
+	// 물체의 최종 상태 설정
 	currentPosition += deltaPosition;
 }
 
