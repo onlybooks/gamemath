@@ -54,7 +54,7 @@ void SoftRenderer::LoadScene2D()
 
 // 게임 로직과 렌더링 로직이 공유하는 변수
 Vector2 deltaPosition;
-float currentScale = 1.f;
+float deltaScale = 0.f;
 
 // 게임 로직을 담당하는 함수
 void SoftRenderer::Update2D(float InDeltaSeconds)
@@ -65,14 +65,11 @@ void SoftRenderer::Update2D(float InDeltaSeconds)
 
 	// 게임 로직의 로컬 변수
 	static float moveSpeed = 100.f;
-	static float scaleMin = 10.f;
-	static float scaleMax = 20.f;
 	static float scaleSpeed = 20.f;
 
 	Vector2 inputVector = Vector2(input.GetAxis(InputAxis::XAxis), input.GetAxis(InputAxis::YAxis)).GetNormalize();
 	deltaPosition = inputVector * moveSpeed * InDeltaSeconds;
-	float deltaScale = input.GetAxis(InputAxis::ZAxis) * scaleSpeed * InDeltaSeconds;
-	currentScale = Math::Clamp(currentScale + deltaScale, scaleMin, scaleMax);
+	deltaScale = input.GetAxis(InputAxis::ZAxis) * scaleSpeed * InDeltaSeconds;
 }
 
 // 렌더링 로직을 담당하는 함수
@@ -86,8 +83,13 @@ void SoftRenderer::Render2D()
 	DrawGizmo2D();
 
 	// 렌더링 로직의 로컬 변수
+	static float scaleMin = 5.f;
+	static float scaleMax = 20.f;
+	static float currentScale = 10.f;
 	static Vector2 currentPosition;
+
 	currentPosition += deltaPosition;
+	currentScale = Math::Clamp(currentScale + deltaScale, scaleMin, scaleMax);
 
 	// 하트를 구성하는 점 생성
 	static float increment = 0.001f;
