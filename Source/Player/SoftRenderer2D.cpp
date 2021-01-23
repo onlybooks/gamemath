@@ -114,6 +114,41 @@ void SoftRenderer::Render2D()
 		}
 	}
 
+	// 아핀 변환 행렬 ( 크기 ) 
+	Vector3 sBasis1(currentScale, 0.f, 0.f);
+	Vector3 sBasis2(0.f, currentScale, 0.f);
+	Vector3 sBasis3 = Vector3::UnitZ;
+	Matrix3x3 sMatrix(sBasis1, sBasis2, sBasis3);
+
+	// 아핀 변환 행렬 ( 회전 ) 
+	float sin = 0.f, cos = 0.f;
+	Math::GetSinCos(sin, cos, currentDegree);
+	Vector3 rBasis1(cos, sin, 0.f);
+	Vector3 rBasis2(-sin, cos, 0.f);
+	Vector3 rBasis3 = Vector3::UnitZ;
+	Matrix3x3 rMatrix(rBasis1, rBasis2, rBasis3);
+
+	// 아핀 변환 행렬 ( 이동 ) 
+	Vector3 tBasis1 = Vector3::UnitX;
+	Vector3 tBasis2 = Vector3::UnitY;
+	Vector3 tBasis3(currentPosition.X, currentPosition.Y, 1.f);
+	Matrix3x3 tMatrix(tBasis1, tBasis2, tBasis3);
+
+	// 모든 아핀 변환의 조합 행렬. 크기-회전-이동 순으로 조합
+	Matrix3x3 finalMatrix = tMatrix * rMatrix * sMatrix;
+
+	// 각 값을 초기화한 후 동일하게 증가시키면서 색상 값을 지정
+	rad = 0.f;
+	for (auto const& v : hearts)
+	{
+		// 아핀 변환을 적용하고 마지막 차원의 값을 제거하고 사용
+		Vector2 finalV = finalMatrix * v;
+
+		hsv.H = rad / Math::TwoPI;
+		r.DrawPoint(finalV, hsv.ToLinearColor());
+		rad += increment;
+	}
+
 	// 현재 위치, 크기, 각도를 화면에 출력
 	r.PushStatisticText(std::string("Position : ") + currentPosition.ToString());
 	r.PushStatisticText(std::string("Scale : ") + std::to_string(currentScale));
