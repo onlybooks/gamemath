@@ -83,10 +83,10 @@ void SoftRenderer::Render2D()
 	DrawGizmo2D();
 
 	// 렌더링 로직의 로컬 변수
+	static Vector2 currentPosition;
 	static float scaleMin = 5.f;
 	static float scaleMax = 20.f;
 	static float currentScale = 10.f;
-	static Vector2 currentPosition;
 
 	currentPosition += deltaPosition;
 	currentScale = Math::Clamp(currentScale + deltaScale, scaleMin, scaleMax);
