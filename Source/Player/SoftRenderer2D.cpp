@@ -53,9 +53,9 @@ void SoftRenderer::LoadScene2D()
 }
 
 // 게임 로직과 렌더링 로직이 공유하는 변수
-Vector2 deltaPosition;
+Vector2 currentPosition;
 float currentScale = 10.f;
-float deltaDegree = 0.f;
+float currentDegree = 0.f;
 
 // 게임 로직을 담당하는 함수
 void SoftRenderer::Update2D(float InDeltaSeconds)
@@ -66,11 +66,20 @@ void SoftRenderer::Update2D(float InDeltaSeconds)
 
 	// 게임 로직의 로컬 변수
 	static float moveSpeed = 100.f;
+	static float scaleMin = 5.f;
+	static float scaleMax = 20.f;
+	static float scaleSpeed = 20.f;
 	static float rotateSpeed = 180.f;
 
 	Vector2 inputVector = Vector2(input.GetAxis(InputAxis::XAxis), input.GetAxis(InputAxis::YAxis)).GetNormalize();
-	deltaPosition = inputVector * moveSpeed * InDeltaSeconds;
-	deltaDegree = input.GetAxis(InputAxis::WAxis) * rotateSpeed * InDeltaSeconds;
+	Vector2 deltaPosition = inputVector * moveSpeed * InDeltaSeconds;
+	float deltaScale = input.GetAxis(InputAxis::ZAxis) * scaleSpeed * InDeltaSeconds;
+	float deltaDegree = input.GetAxis(InputAxis::WAxis) * rotateSpeed * InDeltaSeconds;
+
+	// 물체의 최종 상태 설정
+	currentPosition += deltaPosition;
+	currentScale = Math::Clamp(currentScale + deltaScale, scaleMin, scaleMax);
+	currentDegree += deltaDegree;
 }
 
 // 렌더링 로직을 담당하는 함수
@@ -84,15 +93,12 @@ void SoftRenderer::Render2D()
 	DrawGizmo2D();
 
 	// 렌더링 로직의 로컬 변수
-	static Vector2 currentPosition;
-	static float currentDegree = 0.f;
-	currentPosition += deltaPosition;
-	currentDegree += deltaDegree;
+	float rad = 0.f;
+	static float increment = 0.001f;
+	static std::vector<Vector2> hearts;
+	HSVColor hsv(0.f, 1.f, 0.85f);
 
 	// 하트를 구성하는 점 생성
-	static float increment = 0.001f;
-	float rad = 0.f;
-	static std::vector<Vector2> hearts;
 	if (hearts.empty())
 	{
 		for (rad = 0.f; rad < Math::TwoPI; rad += increment)
@@ -108,7 +114,7 @@ void SoftRenderer::Render2D()
 		}
 	}
 
-	// 현재 위치와 스케일을 화면에 출력
+	// 현재 위치, 크기, 각도를 화면에 출력
 	r.PushStatisticText(std::string("Position : ") + currentPosition.ToString());
 	r.PushStatisticText(std::string("Scale : ") + std::to_string(currentScale));
 	r.PushStatisticText(std::string("Degree : ") + std::to_string(currentDegree));
