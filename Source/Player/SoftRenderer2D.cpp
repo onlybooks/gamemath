@@ -53,7 +53,7 @@ void SoftRenderer::LoadScene2D()
 }
 
 // 게임 로직과 렌더링 로직이 공유하는 변수
-Vector2 deltaPosition;
+Vector2 currentPosition;
 float currentScale = 10.f;
 
 // 게임 로직을 담당하는 함수
@@ -65,9 +65,17 @@ void SoftRenderer::Update2D(float InDeltaSeconds)
 
 	// 게임 로직의 로컬 변수
 	static float moveSpeed = 100.f;
+	static float scaleMin = 5.f;
+	static float scaleMax = 20.f;
+	static float scaleSpeed = 20.f;
 
 	Vector2 inputVector = Vector2(input.GetAxis(InputAxis::XAxis), input.GetAxis(InputAxis::YAxis)).GetNormalize();
-	deltaPosition = inputVector * moveSpeed * InDeltaSeconds;
+	Vector2 deltaPosition = inputVector * moveSpeed * InDeltaSeconds;
+	float deltaScale = input.GetAxis(InputAxis::ZAxis) * scaleSpeed * InDeltaSeconds;
+
+	// 물체의 최종 상태 설정
+	currentPosition += deltaPosition;
+	currentScale = Math::Clamp(currentScale + deltaScale, scaleMin, scaleMax);
 }
 
 // 렌더링 로직을 담당하는 함수
@@ -81,13 +89,12 @@ void SoftRenderer::Render2D()
 	DrawGizmo2D();
 
 	// 렌더링 로직의 로컬 변수
-	static Vector2 currentPosition;
-	currentPosition += deltaPosition;
+	float rad = 0.f;
+	static float increment = 0.001f;
+	static std::vector<Vector2> hearts;
+	HSVColor hsv(0.f, 1.f, 0.85f);
 
 	// 하트를 구성하는 점 생성
-	static float increment = 0.001f;
-	float rad = 0.f;
-	static std::vector<Vector2> hearts;
 	if (hearts.empty())
 	{
 		for (rad = 0.f; rad < Math::TwoPI; rad += increment)
@@ -105,7 +112,6 @@ void SoftRenderer::Render2D()
 
 	// 각 값을 초기화한 후 색상을 증가시키면서 점에 대응
 	rad = 0.f;
-	HSVColor hsv(0.f, 1.f, 0.85f);
 	for (auto const& v : hearts)
 	{
 		hsv.H = rad / Math::TwoPI;
