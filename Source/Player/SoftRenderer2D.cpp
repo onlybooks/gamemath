@@ -52,7 +52,6 @@ void SoftRenderer::LoadScene2D()
 
 }
 
-
 // 게임 로직과 렌더링 로직이 공유하는 변수
 float currentScale = 10.f;
 float currentDegree = 0.f;
