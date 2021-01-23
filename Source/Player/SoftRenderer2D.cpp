@@ -53,7 +53,7 @@ void SoftRenderer::LoadScene2D()
 }
 
 // 게임 로직과 렌더링 로직이 공유하는 변수
-Vector2 deltaPosition;
+Vector2 currentPosition(100.f, 100.f);
 
 // 게임 로직을 담당하는 함수
 void SoftRenderer::Update2D(float InDeltaSeconds)
@@ -64,9 +64,12 @@ void SoftRenderer::Update2D(float InDeltaSeconds)
 
 	// 게임 로직의 로컬 변수
 	static float moveSpeed = 100.f;
+
 	Vector2 inputVector = Vector2(input.GetAxis(InputAxis::XAxis), input.GetAxis(InputAxis::YAxis)).GetNormalize();
-	
-	deltaPosition = inputVector * moveSpeed * InDeltaSeconds;
+	Vector2 deltaPosition = inputVector * moveSpeed * InDeltaSeconds;
+
+	// 물체의 최종 상태 설정
+	currentPosition += deltaPosition;
 }
 
 // 렌더링 로직을 담당하는 함수
@@ -81,7 +84,6 @@ void SoftRenderer::Render2D()
 
 	// 렌더링 로직의 로컬 변수
 	static float radius = 50.f;
-	static Vector2 center(100.f, 100.f);
 	static std::vector<Vector2> circles;
 
 	// 최초에 한번 반지름보다 긴 벡터를 모아 컨테이너에 담는다
@@ -101,17 +103,14 @@ void SoftRenderer::Render2D()
 		}
 	}
 
-	// 중심 좌표를 변경
-	center += deltaPosition;
-
 	// 원을 구성하는 벡터를 모두 붉은 색으로 표시한다. 
 	for (auto const& v : circles)
 	{
-		r.DrawPoint(v + center, LinearColor::Red);
+		r.DrawPoint(v + currentPosition, LinearColor::Red);
 	}
 
 	// 원의 중심 좌표를 우상단에 출력
-	r.PushStatisticText("Coordinate : " + center.ToString());
+	r.PushStatisticText("Coordinate : " + currentPosition.ToString());
 }
 
 // 메시를 그리는 함수
