@@ -53,7 +53,7 @@ void SoftRenderer::LoadScene2D()
 }
 
 // 게임 로직과 렌더링 로직이 공유하는 변수
-Vector2 deltaPosition;
+Vector2 currentPosition(100.f, 100.f);
 
 // 게임 로직을 담당하는 함수
 void SoftRenderer::Update2D(float InDeltaSeconds)
@@ -64,9 +64,10 @@ void SoftRenderer::Update2D(float InDeltaSeconds)
 
 	// 게임 로직의 로컬 변수
 	static float moveSpeed = 100.f;
-	Vector2 inputVector = Vector2(input.GetAxis(InputAxis::XAxis), input.GetAxis(InputAxis::YAxis));
-	
-	deltaPosition = inputVector * moveSpeed * InDeltaSeconds;
+
+	Vector2 inputVector = Vector2(input.GetAxis(InputAxis::XAxis), input.GetAxis(InputAxis::YAxis));	
+	float deltaPosition = inputVector * moveSpeed * InDeltaSeconds;
+	currentPosition += deltaPosition;
 }
 
 // 렌더링 로직을 담당하는 함수
@@ -80,30 +81,27 @@ void SoftRenderer::Render2D()
 	DrawGizmo2D();
 
 	// 렌더링 로직의 로컬 변수
-	static Vector2 v(100.f, 100.f); 
 
-	// 게임 로직에서 계산된 변수를 반영해 최종 위치를 계산
-	v += deltaPosition;
 
 	// 밝은 회색의 선을 사용해 벡터의 선형성을 표현
 	static float lineLength = 500.f;
-	Vector2 lineStart = v * lineLength;
-	Vector2 lineEnd = v * -lineLength;
+	Vector2 lineStart = currentPosition * lineLength;
+	Vector2 lineEnd = currentPosition * -lineLength;
 	r.DrawLine(lineStart, lineEnd, LinearColor::LightGray);
 
 	// 벡터를 파란색 픽셀로 표현
-	r.DrawPoint(v, LinearColor::Blue);
-	r.DrawPoint(v + Vector2::UnitX, LinearColor::Blue);
-	r.DrawPoint(v - Vector2::UnitX, LinearColor::Blue);
-	r.DrawPoint(v + Vector2::UnitY, LinearColor::Blue);
-	r.DrawPoint(v - Vector2::UnitY, LinearColor::Blue);
-	r.DrawPoint(v + Vector2::One, LinearColor::Blue);
-	r.DrawPoint(v - Vector2::One, LinearColor::Blue);
-	r.DrawPoint(v + Vector2(1.f, -1.f), LinearColor::Blue);
-	r.DrawPoint(v - Vector2(1.f, -1.f), LinearColor::Blue);
+	r.DrawPoint(currentPosition, LinearColor::Blue);
+	r.DrawPoint(currentPosition + Vector2::UnitX, LinearColor::Blue);
+	r.DrawPoint(currentPosition - Vector2::UnitX, LinearColor::Blue);
+	r.DrawPoint(currentPosition + Vector2::UnitY, LinearColor::Blue);
+	r.DrawPoint(currentPosition - Vector2::UnitY, LinearColor::Blue);
+	r.DrawPoint(currentPosition + Vector2::One, LinearColor::Blue);
+	r.DrawPoint(currentPosition - Vector2::One, LinearColor::Blue);
+	r.DrawPoint(currentPosition + Vector2(1.f, -1.f), LinearColor::Blue);
+	r.DrawPoint(currentPosition - Vector2(1.f, -1.f), LinearColor::Blue);
 
 	// 벡터의 현재 좌표를 우상단에 출력
-	r.PushStatisticText("Coordinate : " + v.ToString());
+	r.PushStatisticText("Coordinate : " + currentPosition.ToString());
 }
 
 // 메시를 그리는 함수
