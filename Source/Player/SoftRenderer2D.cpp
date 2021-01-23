@@ -53,7 +53,7 @@ void SoftRenderer::LoadScene2D()
 }
 
 // 게임 로직과 렌더링 로직이 공유하는 변수
-float deltaDegree = 0.f;
+float currentDegree = 0.f;
 
 // 게임 로직을 담당하는 함수
 void SoftRenderer::Update2D(float InDeltaSeconds)
@@ -65,7 +65,10 @@ void SoftRenderer::Update2D(float InDeltaSeconds)
 	// 게임 로직의 로컬 변수
 	static float rotateSpeed = 180.f;
 
-	deltaDegree = input.GetAxis(InputAxis::WAxis) * rotateSpeed * InDeltaSeconds;
+	float deltaDegree = input.GetAxis(InputAxis::WAxis) * rotateSpeed * InDeltaSeconds;
+
+	// 물체의 최종 상태 설정
+	currentDegree += deltaDegree;
 }
 
 // 렌더링 로직을 담당하는 함수
@@ -81,9 +84,6 @@ void SoftRenderer::Render2D()
 	// 렌더링 로직의 로컬 변수
 	static float halfSize = 100.f;
 	static std::vector<Vector2> squares;
-	static float currentDegree = 0.f;
-
-	currentDegree += deltaDegree;
 
 	// 사각형을 구성하는 점을 생성
 	if (squares.empty())
@@ -130,7 +130,7 @@ void SoftRenderer::Render2D()
 		r.DrawPoint(cartesianV, hsv.ToLinearColor());
 	}
 
-	// 현재 위치와 회전을 화면에 출력
+	// 현재 각도를 화면에 출력
 	r.PushStatisticText(std::string("Degree : ") + std::to_string(currentDegree));
 }
 
