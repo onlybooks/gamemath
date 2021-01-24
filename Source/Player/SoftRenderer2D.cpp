@@ -104,7 +104,7 @@ void SoftRenderer::Update2D(float InDeltaSeconds)
 	Vector2 deltaPosition = inputVector * moveSpeed * InDeltaSeconds;
 
 	Vector2 f = Vector2::UnitY;
-	Vector2 v = (targetPosition - playerPosition).GetNormalize(); // 보초에서 플레이어로 향하는 정규화된 벡터
+	Vector2 v = (targetPosition - playerPosition).GetNormalize();
 
 	// 물체의 최종 상태 설정
 	if (v.Dot(f) >= fovCos)
