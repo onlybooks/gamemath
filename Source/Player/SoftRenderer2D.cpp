@@ -141,11 +141,14 @@ void SoftRenderer::Render2D()
 	rad = 0.f;
 	for (auto const& v : hearts)
 	{
-		// 아핀 변환을 적용하고 마지막 차원의 값을 제거하고 사용
-		Vector2 finalV = finalMatrix * v;
+		// 곱셈을 위해 하트를 구성하는 벡터를 3차원으로 변경
+		Vector3 newV(v.X, v.Y, 1.f);
+
+		// 아핀 변환을 적용하고 마지막 차원의 값을 제거하고 사용		
+		Vector3 finalV = finalMatrix * newV;
 
 		hsv.H = rad / Math::TwoPI;
-		r.DrawPoint(finalV, hsv.ToLinearColor());
+		r.DrawPoint(finalV.ToVector2(), hsv.ToLinearColor());
 		rad += increment;
 	}
 
