@@ -53,6 +53,7 @@ void SoftRenderer::LoadScene2D()
 }
 
 // 게임 로직과 렌더링 로직이 공유하는 변수
+float fovAngle = 60.f;
 Vector2 playerPosition(0.f, 0.f);
 LinearColor playerColor = LinearColor::Gray;
 Vector2 targetPosition(100.f, 100.f);
@@ -75,6 +76,9 @@ void SoftRenderer::Update2D(float InDeltaSeconds)
 	static float elapsedTime = 0.f;
 	static Vector2 targetStart = targetPosition;
 	static Vector2 targetDestination = Vector2(randomPosX(mt), randomPosY(mt));
+
+	// 시야각의 코사인 값은 최초 1회만 계산해 보관한다.
+	static float fovCos = cosf(Math::Deg2Rad(fovAngle * 0.5f));
 
 	elapsedTime = Math::Clamp(elapsedTime + InDeltaSeconds, 0.f, duration);
 
@@ -99,9 +103,21 @@ void SoftRenderer::Update2D(float InDeltaSeconds)
 	Vector2 inputVector = Vector2(input.GetAxis(InputAxis::XAxis), input.GetAxis(InputAxis::YAxis)).GetNormalize();
 	Vector2 deltaPosition = inputVector * moveSpeed * InDeltaSeconds;
 
+	Vector2 f = Vector2::UnitY;
+	Vector2 v = (targetPosition - playerPosition).GetNormalize(); // 보초에서 플레이어로 향하는 정규화된 벡터
+
 	// 물체의 최종 상태 설정
-	playerColor = LinearColor::Gray;
-	targetColor = LinearColor::Blue;
+	if (v.Dot(f) >= fovCos)
+	{
+		playerColor = LinearColor::Red;
+		targetColor = LinearColor::Red;
+	}
+	else
+	{
+		playerColor = LinearColor::Gray;
+		targetColor = LinearColor::Blue;
+	}
+
 	playerPosition += deltaPosition;
 }
 
@@ -135,6 +151,12 @@ void SoftRenderer::Render2D()
 	}
 
 	// 플레이어 렌더링. 
+	float fovSin = 0.f, fovCos = 0.f;
+	Math::GetSinCos(fovSin, fovCos, fovAngle * 0.5f);
+
+	r.DrawLine(playerPosition, playerPosition + Vector2(sightLength * fovSin, sightLength * fovCos), playerColor);
+	r.DrawLine(playerPosition, playerPosition + Vector2(-sightLength * fovSin, sightLength * fovCos), playerColor);
+	r.DrawLine(playerPosition, playerPosition + Vector2::UnitY * 50.f, playerColor);
 	for (auto const& v : sphere)
 	{
 		r.DrawPoint(v + playerPosition, playerColor);
