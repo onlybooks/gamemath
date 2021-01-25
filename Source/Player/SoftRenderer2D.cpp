@@ -78,7 +78,7 @@ void SoftRenderer::Update2D(float InDeltaSeconds)
 	static Vector2 targetDestination = Vector2(randomPosX(mt), randomPosY(mt));
 
 	// 시야각의 코사인 값은 최초 1회만 계산해 보관한다.
-	static float fovCos = cosf(Math::Deg2Rad(fovAngle * 0.5f));
+	static float halfFovCos = cosf(Math::Deg2Rad(fovAngle * 0.5f));
 
 	elapsedTime = Math::Clamp(elapsedTime + InDeltaSeconds, 0.f, duration);
 
@@ -107,7 +107,7 @@ void SoftRenderer::Update2D(float InDeltaSeconds)
 	Vector2 v = (targetPosition - playerPosition).GetNormalize();
 
 	// 물체의 최종 상태 설정
-	if (v.Dot(f) >= fovCos)
+	if (v.Dot(f) >= halfFovCos)
 	{
 		playerColor = LinearColor::Red;
 		targetColor = LinearColor::Red;
@@ -151,12 +151,12 @@ void SoftRenderer::Render2D()
 	}
 
 	// 플레이어 렌더링. 
-	float fovSin = 0.f, fovCos = 0.f;
-	Math::GetSinCos(fovSin, fovCos, fovAngle * 0.5f);
+	float halfFovSin = 0.f, halfFovCos = 0.f;
+	Math::GetSinCos(halfFovSin, halfFovCos, fovAngle * 0.5f);
 
-	r.DrawLine(playerPosition, playerPosition + Vector2(sightLength * fovSin, sightLength * fovCos), playerColor);
-	r.DrawLine(playerPosition, playerPosition + Vector2(-sightLength * fovSin, sightLength * fovCos), playerColor);
-	r.DrawLine(playerPosition, playerPosition + Vector2::UnitY * 50.f, playerColor);
+	r.DrawLine(playerPosition, playerPosition + Vector2(sightLength * halfFovSin, sightLength * halfFovCos), playerColor);
+	r.DrawLine(playerPosition, playerPosition + Vector2(-sightLength * halfFovSin, sightLength * halfFovCos), playerColor);
+	r.DrawLine(playerPosition, playerPosition + Vector2::UnitY * sightLength * 0.2f, playerColor);
 	for (auto const& v : sphere)
 	{
 		r.DrawPoint(v + playerPosition, playerColor);
