@@ -53,9 +53,9 @@ void SoftRenderer::LoadScene2D()
 }
 
 // 게임 로직과 렌더링 로직이 공유하는 변수
-Vector2 currentPosition;
-float currentScale = 10.f;
-float currentDegree = 0.f;
+Vector2 lightPosition(200.f, 0.f);
+LinearColor lightColor;
+Vector2 circlePosition;
 
 // 게임 로직을 담당하는 함수
 void SoftRenderer::Update2D(float InDeltaSeconds)
@@ -65,21 +65,20 @@ void SoftRenderer::Update2D(float InDeltaSeconds)
 	const InputManager& input = g.GetInputManager();
 
 	// 게임 로직의 로컬 변수
-	static float moveSpeed = 100.f;
-	static float scaleMin = 5.f;
-	static float scaleMax = 20.f;
-	static float scaleSpeed = 20.f;
-	static float rotateSpeed = 180.f;
+	static float duration = 20.f;
+	static float elapsedTime = 0.f;
+	static float currentDegree = 0.f;
+	static float lightDistance = 200.f;
+	static HSVColor lightHSVColor;
 
-	Vector2 inputVector = Vector2(input.GetAxis(InputAxis::XAxis), input.GetAxis(InputAxis::YAxis)).GetNormalize();
-	Vector2 deltaPosition = inputVector * moveSpeed * InDeltaSeconds;
-	float deltaScale = input.GetAxis(InputAxis::ZAxis) * scaleSpeed * InDeltaSeconds;
-	float deltaDegree = input.GetAxis(InputAxis::WAxis) * rotateSpeed * InDeltaSeconds;
+	// 경과 시간에 따른 현재 각과 이를 사용한 [0,1]값의 생성
+	elapsedTime += InDeltaSeconds;
+	elapsedTime = Math::FMod(elapsedTime, duration);
+	float currentRad = (elapsedTime / duration) * Math::TwoPI;
+	float alpha = (sinf(currentRad) + 1) * 0.5f;
 
-	// 물체의 최종 상태 설정
-	currentPosition += deltaPosition;
-	currentScale = Math::Clamp(currentScale + deltaScale, scaleMin, scaleMax);
-	currentDegree += deltaDegree;
+	// [0,1]을 활용해 주기적으로 크기를 반복하기
+	currentDegree = Math::Lerp(0.f, 360.f, alpha);
 }
 
 // 렌더링 로직을 담당하는 함수
@@ -89,35 +88,65 @@ void SoftRenderer::Render2D()
 	auto& r = GetRenderer();
 	const auto& g = Get2DGameEngine();
 
-	// 배경에 격자 그리기
-	DrawGizmo2D();
-
 	// 렌더링 로직의 로컬 변수
-	float rad = 0.f;
-	static float increment = 0.001f;
-	static std::vector<Vector2> hearts;
-	HSVColor hsv(0.f, 1.f, 0.85f);
+	static std::vector<Vector2> light;
+	static float lightRadius = 10.f;
+	static std::vector<Vector2> circle;
+	static float circleRadius = 50.f;
 
-	// 하트를 구성하는 점 생성
-	if (hearts.empty())
+	// 광원을 표현하는 구체
+	if (light.empty())
 	{
-		for (rad = 0.f; rad < Math::TwoPI; rad += increment)
+		float lightRadius = 10.f;
+		for (float x = -lightRadius; x <= lightRadius; ++x)
 		{
-			float sin = sinf(rad);
-			float cos = cosf(rad);
-			float cos2 = cosf(2 * rad);
-			float cos3 = cosf(3 * rad);
-			float cos4 = cosf(4 * rad);
-			float x = 16.f * sin * sin * sin;
-			float y = 13 * cos - 5 * cos2 - 2 * cos3 - cos4;
-			hearts.push_back(Vector2(x, y));
+			for (float y = -lightRadius; y <= lightRadius; ++y)
+			{
+				Vector2 target(x, y);
+				float sizeSquared = target.SizeSquared();
+				float rr = lightRadius * lightRadius;
+				if (sizeSquared < rr)
+				{
+					light.push_back(target);
+				}
+			}
 		}
 	}
 
-	// 현재 위치, 크기, 각도를 화면에 출력
-	r.PushStatisticText(std::string("Position : ") + currentPosition.ToString());
-	r.PushStatisticText(std::string("Scale : ") + std::to_string(currentScale));
-	r.PushStatisticText(std::string("Degree : ") + std::to_string(currentDegree));
+	// 빛을 받는 물체
+	if (circle.empty())
+	{
+		for (float x = -circleRadius; x <= circleRadius; ++x)
+		{
+			for (float y = -circleRadius; y <= circleRadius; ++y)
+			{
+				Vector2 target(x, y);
+				float sizeSquared = target.SizeSquared();
+				float rr = circleRadius * circleRadius;
+				if (sizeSquared < rr)
+				{
+					circle.push_back(target);
+				}
+			}
+		}
+	}
+
+	// 광원 그리기
+	static float lightLineLength = 50.f;
+	r.DrawLine(lightPosition, lightPosition - lightPosition.GetNormalize() * lightLineLength, lightColor);
+	for (auto const& v : light)
+	{
+		r.DrawPoint(v + lightPosition, lightColor);
+	}
+
+	// 광원을 받는 구체의 모든 픽셀에 NdotL을 계산해 음영을 산출하고 이를 최종 색상에 반영
+	for (auto const& v : circle)
+	{
+		r.DrawPoint(v, LinearColor::Black);
+	}
+
+	// 현재 조명의 위치를 화면에 출력
+	r.PushStatisticText(std::string("Position : ") + lightPosition.ToString());
 }
 
 // 메시를 그리는 함수
