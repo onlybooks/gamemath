@@ -123,7 +123,7 @@ private:
 	LinearColor _BackgroundColor = LinearColor::WhiteSmoke;
 
 	// 와이어프레임 색상
-	LinearColor _WireframeColor = LinearColor::DimGray;
+	LinearColor _WireframeColor = LinearColor::Blue;
 
 	// 성능 측정
 	long long _StartTimeStamp = 0;
