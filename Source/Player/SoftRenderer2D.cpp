@@ -98,9 +98,9 @@ void SoftRenderer::Render2D()
 
     // 메시를 구성하는 정점 배열과 인덱스 배열의 생성
     static constexpr std::array<Vertex2D, vertexCount> rawVertices = {
-        Vertex2D(Vector2(0.f, 0.25f)),
-        Vertex2D(Vector2(-0.5f, -0.25f)),
-        Vertex2D(Vector2(0.5f, -0.25f))
+        Vertex2D(Vector2(0.f, 0.25f), LinearColor(1.f, 0.f, 0.f)),
+        Vertex2D(Vector2(-0.5f, -0.25f), LinearColor(0.f, 1.f, 0.f)),
+        Vertex2D(Vector2(0.5f, -0.25f), LinearColor(0.f, 0.f, 1.f))
     };
 
     static constexpr std::array<size_t, triangleCount * 3> indices = {
@@ -194,7 +194,8 @@ void SoftRenderer::Render2D()
                 // 컨벡스 조건을 만족할 때만 점 찍기
                 if (((s >= 0.f) && (s <= 1.f)) && ((t >= 0.f) && (t <= 1.f)) && ((oneMinusST >= 0.f) && (oneMinusST <= 1.f)))
                 {
-                    r.DrawPoint(fragment, LinearColor::Blue);
+                    LinearColor outColor = tv[0].Color * oneMinusST + tv[1].Color * s + tv[2].Color * t;
+                    r.DrawPoint(fragment, outColor);
                 }
             }
         }
