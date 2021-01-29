@@ -93,7 +93,22 @@ void SoftRenderer::Render2D()
 	DrawGizmo2D();
 
 	// 메시 데이터의 선언
+	static constexpr float squareHalfSize = 0.5f;
+	static constexpr size_t vertexCount = 4;
+	static constexpr size_t triangleCount = 2;
 
+	// 메시를 구성하는 정점 배열과 인덱스 배열의 생성
+	static constexpr std::array<Vertex2D, vertexCount> rawVertices = {
+		Vertex2D(Vector2(-squareHalfSize, -squareHalfSize)),
+		Vertex2D(Vector2(-squareHalfSize, squareHalfSize)),
+		Vertex2D(Vector2(squareHalfSize, squareHalfSize)),
+		Vertex2D(Vector2(squareHalfSize, -squareHalfSize))
+	};
+
+	static constexpr std::array<size_t, triangleCount * 3> indices = {
+		0, 1, 2,
+		0, 2, 3
+	};
 
 	// 아핀 변환 행렬 ( 크기 ) 
 	Vector3 sBasis1(currentScale, 0.f, 0.f);
@@ -119,7 +134,20 @@ void SoftRenderer::Render2D()
 	Matrix3x3 finalMatrix = tMatrix * rMatrix * sMatrix;
 
 	// 행렬을 적용한 메시 정보를 사용해 물체를 렌더링
+	static std::vector<Vertex2D> vertices(vertexCount);
+	for (size_t vi = 0; vi < vertexCount; ++vi)
+	{
+		vertices[vi].Position = finalMatrix * rawVertices[vi].Position;
+	}
 
+	// 변환된 정점을 잇는 선 그리기
+	for (size_t ti = 0; ti < triangleCount; ++ti)
+	{
+		size_t bi = ti * 3;
+		r.DrawLine(vertices[indices[bi]].Position, vertices[indices[bi + 1]].Position, _WireframeColor);
+		r.DrawLine(vertices[indices[bi]].Position, vertices[indices[bi + 2]].Position, _WireframeColor);
+		r.DrawLine(vertices[indices[bi + 1]].Position, vertices[indices[bi + 2]].Position, _WireframeColor);
+	}
 
 	// 현재 위치, 크기, 각도를 화면에 출력
 	r.PushStatisticText(std::string("Position : ") + currentPosition.ToString());
