@@ -88,6 +88,7 @@ void SoftRenderer::Render2D()
     // 렌더링 로직에서 사용하는 모듈 내 주요 레퍼런스
     auto& r = GetRenderer();
     const auto& g = Get2DGameEngine();
+    const auto& texture = g.GetTexture(GameEngine::BaseTexture);
 
     // 배경에 격자 그리기
     DrawGizmo2D();
@@ -99,10 +100,10 @@ void SoftRenderer::Render2D()
 
     // 메시를 구성하는 정점 배열과 인덱스 배열의 생성
     static constexpr std::array<Vertex2D, vertexCount> rawVertices = {
-        Vertex2D(Vector2(-squareHalfSize, -squareHalfSize)),
-        Vertex2D(Vector2(-squareHalfSize, squareHalfSize)),
-        Vertex2D(Vector2(squareHalfSize, squareHalfSize)),
-        Vertex2D(Vector2(squareHalfSize, -squareHalfSize))
+        Vertex2D(Vector2(-squareHalfSize, -squareHalfSize), LinearColor(), Vector2(0.125f, 0.75f)),
+        Vertex2D(Vector2(-squareHalfSize, squareHalfSize), LinearColor(), Vector2(0.125f, 0.875f)),
+        Vertex2D(Vector2(squareHalfSize, squareHalfSize), LinearColor(), Vector2(0.25f, 0.875f)),
+        Vertex2D(Vector2(squareHalfSize, -squareHalfSize), LinearColor(), Vector2(0.25f, 0.75f))
     };
 
     static constexpr std::array<size_t, triangleCount * 3> indices = {
@@ -138,6 +139,7 @@ void SoftRenderer::Render2D()
     for (size_t vi = 0; vi < vertexCount; ++vi)
     {
         vertices[vi].Position = finalMatrix * rawVertices[vi].Position;
+        vertices[vi].UV = rawVertices[vi].UV;
     }
 
     // 변환된 정점을 잇는 선 그리기
@@ -196,7 +198,8 @@ void SoftRenderer::Render2D()
                 // 컨벡스 조건을 만족할 때만 점 찍기
                 if (((s >= 0.f) && (s <= 1.f)) && ((t >= 0.f) && (t <= 1.f)) && ((oneMinusST >= 0.f) && (oneMinusST <= 1.f)))
                 {
-                    r.DrawPoint(fragment, LinearColor::Blue);
+                    Vector2 targetUV = tv[0].UV * oneMinusST + tv[1].UV * s + tv[2].UV * t;
+                    r.DrawPoint(fragment, texture.GetSample(targetUV));
                 }
             }
         }
