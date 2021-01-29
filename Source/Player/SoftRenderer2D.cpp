@@ -144,9 +144,7 @@ void SoftRenderer::Render2D()
 	for (size_t ti = 0; ti < triangleCount; ++ti)
 	{
 		size_t bi = ti * 3;
-		r.DrawLine(vertices[indices[bi]].Position, vertices[indices[bi + 1]].Position, _WireframeColor);
-		r.DrawLine(vertices[indices[bi]].Position, vertices[indices[bi + 2]].Position, _WireframeColor);
-		r.DrawLine(vertices[indices[bi + 1]].Position, vertices[indices[bi + 2]].Position, _WireframeColor);
+
 	}
 
 	// 현재 위치, 크기, 각도를 화면에 출력
