@@ -96,6 +96,7 @@ void SoftRenderer::Update2D(float InDeltaSeconds)
     float newScale = Math::Clamp(transform.GetScale().X + scaleSpeed * input.GetAxis(InputAxis::ZAxis) * InDeltaSeconds, scaleMin, scaleMax);
     transform.SetScale(Vector2::One * newScale);
     transform.AddRotation(input.GetAxis(InputAxis::WAxis) * rotateSpeed * InDeltaSeconds);
+
 }
 
 // 렌더링 로직을 담당하는 함수
