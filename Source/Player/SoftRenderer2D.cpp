@@ -52,19 +52,16 @@ void SoftRenderer::LoadScene2D()
 
     // 플레이어의 생성과 설정
     constexpr float playerScale = 30.f;
-    constexpr float squareScale = 20.f;
-
     GameObject& goPlayer = g.CreateNewGameObject(PlayerGo);
     goPlayer.SetMesh(GameEngine::QuadMesh);
     goPlayer.GetTransform().SetScale(Vector2::One * playerScale);
     goPlayer.SetColor(LinearColor::Red);
 
-    // 고정 시드를 사용해 배경 물체의 트랜스폼을 일정하게 지정
-    std::mt19937 generator(0);
-    std::uniform_real_distribution<float> dist(-1000.f, 1000.f);
-
     // 100개의 배경 게임 오브젝트 생성과 설정
     char name[64];
+    constexpr float squareScale = 20.f;
+    std::mt19937 generator(0);
+    std::uniform_real_distribution<float> dist(-1000.f, 1000.f);
     for (int i = 0; i < 100; ++i)
     {
         std::snprintf(name, sizeof(name), "GameObject%d", i);
@@ -95,10 +92,10 @@ void SoftRenderer::Update2D(float InDeltaSeconds)
     TransformComponent& transform = goPlayer.GetTransform();
 
     // 입력에 따른 플레이어 위치와 크기의 변경
-    transform.AddPosition(Vector2(input.GetAxis(InputAxis::XAxis), input.GetAxis(InputAxis::YAxis)) * moveSpeed * InDeltaSeconds);
-    transform.AddRotation(input.GetAxis(InputAxis::WAxis) * rotateSpeed * InDeltaSeconds);
+    transform.AddPosition(Vector2(input.GetAxis(InputAxis::XAxis), input.GetAxis(InputAxis::YAxis)).GetNormalize() * moveSpeed * InDeltaSeconds);
     float newScale = Math::Clamp(transform.GetScale().X + scaleSpeed * input.GetAxis(InputAxis::ZAxis) * InDeltaSeconds, scaleMin, scaleMax);
     transform.SetScale(Vector2::One * newScale);
+    transform.AddRotation(input.GetAxis(InputAxis::WAxis) * rotateSpeed * InDeltaSeconds);
 }
 
 // 렌더링 로직을 담당하는 함수
