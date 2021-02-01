@@ -49,20 +49,8 @@ private:
 	bool LoadResources();
 
 public: // 주요 키 값
-	// 본
-	static const std::string RootBone;
-	static const std::string PelvisBone;
-	static const std::string SpineBone;
-	static const std::string LeftArmBone;
-	static const std::string RightArmBone;
-	static const std::string NeckBone;
-	static const std::string LeftLegBone;
-	static const std::string RightLegBone;
-
 	// 메시
-	static const std::size_t CharacterMesh;
-	static const std::size_t ArrowMesh;
-	static const std::size_t PlaneMesh;
+	static const std::size_t CubeMesh;
 
 	// 텍스처
 	static const std::size_t BaseTexture;
