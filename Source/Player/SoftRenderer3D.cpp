@@ -87,7 +87,15 @@ void SoftRenderer::Update3D(float InDeltaSeconds)
 
 	// 게임 로직의 로컬 변수
 	static float rotateSpeed = 180.f;
+	static Rotator axisRotator;
 
+	// 입력에 따른 회전축의 설정
+	axisRotator.Yaw += -input.GetAxis(InputAxis::XAxis) * rotateSpeed * InDeltaSeconds;
+	axisRotator.Pitch += -input.GetAxis(InputAxis::YAxis) * rotateSpeed * InDeltaSeconds;
+	axisRotator.Roll += input.GetAxis(InputAxis::ZAxis) * rotateSpeed * InDeltaSeconds;
+	axisRotator.Clamp();
+	axisRotator.GetLocalAxes(right, n, forward);
+	thetaDegree = Math::FMod(thetaDegree + input.GetAxis(InputAxis::WAxis) * rotateSpeed * InDeltaSeconds, 360.f);
 }
 
 // 애니메이션 로직을 담당하는 함수
@@ -166,7 +174,16 @@ void SoftRenderer::DrawMesh3D(const Mesh& InMesh, const Matrix4x4& InMatrix, con
 	}
 
 	// 정점 변환 진행
-
+	for (Vertex3D& v : vertices)
+	{
+		float sin = 0.f, cos = 0.f;
+		Math::GetSinCos(sin, cos, thetaDegree);
+		Vector3 u = v.Position.ToVector3();
+		float udotn = u.Dot(n);
+		Vector3 ncrossu = n.Cross(u);
+		Vector3 result = Vector3(u * cos + n * ((1.f - cos) * udotn) + ncrossu * sin) * InScale;
+		v.Position = InMatrix * Vector4(result);
+	}
 
 	// 삼각형 별로 그리기
 	for (int ti = 0; ti < triangleCount; ++ti)
