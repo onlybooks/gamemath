@@ -69,17 +69,6 @@ void SoftRenderer::Update3D(float InDeltaSeconds)
 	static float moveSpeed = 500.f;
 	static float rotateSpeed = 180.f;
 
-	// 게임 로직에서 사용할 게임 오브젝트 레퍼런스
-	GameObject& goPlayer = g.GetGameObject(PlayerGo);
-	CameraObject& camera = g.GetMainCamera();
-
-	// 입력에 따른 플레이어 트랜스폼의 변경
-	goPlayer.GetTransform().AddPosition(Vector3::UnitZ * input.GetAxis(InputAxis::ZAxis) * moveSpeed * InDeltaSeconds);
-	goPlayer.GetTransform().AddPitchRotation(-input.GetAxis(InputAxis::WAxis) * rotateSpeed * InDeltaSeconds);
-
-	// 입력에 따른 카메라 트랜스폼의 변경
-	camera.GetTransform().AddYawRotation(-input.GetAxis(InputAxis::XAxis) * rotateSpeed * InDeltaSeconds);
-	camera.GetTransform().AddPitchRotation(-input.GetAxis(InputAxis::YAxis) * rotateSpeed * InDeltaSeconds);
 }
 
 // 애니메이션 로직을 담당하는 함수

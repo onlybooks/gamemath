@@ -17,6 +17,7 @@ public:
 	const TransformComponent& GetTransform() const { return _Transform; }
 
 	// 카메라 값을 가져오는 함수
+	void SetLookAtRotation(const Vector3& InTargetPosition, const Vector3& InUp = Vector3::UnitY);
 	const ScreenPoint& GetViewportSize() const { return _ViewportSize; }
 
 	// 카메라 값을 설정하는 함수
