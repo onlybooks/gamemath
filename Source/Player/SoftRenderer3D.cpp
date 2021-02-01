@@ -4,7 +4,11 @@
 #include <random>
 using namespace CK::DDD;
 
-// 기즈모를 그리는 함수
+// 로드리게스 회전에 관련된 변수 선언
+Vector3 n;
+Vector3 right, forward;
+float thetaDegree = 0.f;
+
 void SoftRenderer::DrawGizmo3D()
 {
 	auto& r = GetRenderer();
@@ -29,6 +33,21 @@ void SoftRenderer::DrawGizmo3D()
 	r.DrawLine(v0, v1, LinearColor::Red);
 	r.DrawLine(v0, v2, LinearColor::Green);
 	r.DrawLine(v0, v3, LinearColor::Blue);
+
+	// 회전 축 그리기
+	static float axisLength = 150.f;
+	static float planeLength = 30.f;
+
+	Vector2 axisTo = (viewMatRotationOnly * n).ToVector2() * axisLength;
+	Vector2 axisFrom = -axisTo;
+	Vector2 rightTo = (viewMatRotationOnly * right).ToVector2() * planeLength;
+	Vector2 rightFrom = -rightTo;
+	Vector2 forwardTo = (viewMatRotationOnly * forward).ToVector2() * planeLength;
+	Vector2 forwardFrom = -forwardTo;
+
+	r.DrawLine(axisFrom, axisTo, LinearColor::Red);
+	r.DrawLine(rightFrom, rightTo, LinearColor::DimGray);
+	r.DrawLine(forwardFrom, forwardTo, LinearColor::DimGray);
 }
 
 // 게임 오브젝트 목록
@@ -67,27 +86,8 @@ void SoftRenderer::Update3D(float InDeltaSeconds)
 	const InputManager& input = g.GetInputManager();
 
 	// 게임 로직의 로컬 변수
-	static float moveSpeed = 500.f;
 	static float rotateSpeed = 180.f;
 
-	// 게임 로직에서 사용할 게임 오브젝트 레퍼런스
-	GameObject& goPlayer = g.GetGameObject(PlayerGo);
-	CameraObject& camera = g.GetMainCamera();
-	TransformComponent& playerTransform = goPlayer.GetTransform();
-
-	// 입력에 따른 플레이어 트랜스폼의 변경
-	Vector3 inputVector = Vector3(input.GetAxis(InputAxis::XAxis), input.GetAxis(InputAxis::YAxis), input.GetAxis(InputAxis::ZAxis)).GetNormalize();
-	playerTransform.AddPosition(inputVector * moveSpeed * InDeltaSeconds);
-	playerTransform.AddPitchRotation(-input.GetAxis(InputAxis::WAxis) * rotateSpeed * InDeltaSeconds);
-
-	// 입력에 따른 카메라 트랜스폼의 변경
-	camera.SetLookAtRotation(playerTransform.GetPosition());
-
-	// 실습 환경의 설정
-	if (input.IsReleased(InputButton::Space))
-	{
-		useBackfaceCulling = !useBackfaceCulling;
-	}
 }
 
 // 애니메이션 로직을 담당하는 함수
@@ -126,22 +126,22 @@ void SoftRenderer::Render3D()
 		const Mesh& mesh = g.GetMesh(gameObject.GetMeshKey());
 		const TransformComponent& transform = gameObject.GetTransform();
 
-		Matrix4x4 finalMatrix = vMatrix * transform.GetModelingMatrix();
+		Matrix4x4 finalMatrix = vMatrix;
 
 		// 메시 그리기
-		DrawMesh3D(mesh, finalMatrix, gameObject.GetColor());
+		DrawMesh3D(mesh, finalMatrix, gameObject.GetTransform().GetScale(), gameObject.GetColor());
 
 		// 뷰 공간에서의 플레이어 위치를 화면에 표시
 		if (gameObject == PlayerGo)
 		{
-			Vector3 viewPosition = vMatrix * transform.GetPosition();
-			r.PushStatisticText("View : " + viewPosition.ToString());
+			r.PushStatisticText("Axis : " + n.ToString());
+			r.PushStatisticText("Degree : " + std::to_string(thetaDegree));
 		}
 	}
 }
 
 // 메시를 그리는 함수
-void SoftRenderer::DrawMesh3D(const Mesh& InMesh, const Matrix4x4& InMatrix, const LinearColor& InColor)
+void SoftRenderer::DrawMesh3D(const Mesh& InMesh, const Matrix4x4& InMatrix, const Vector3& InScale, const LinearColor& InColor)
 {
 	size_t vertexCount = InMesh.GetVertices().size();
 	size_t indexCount = InMesh.GetIndices().size();
@@ -166,7 +166,7 @@ void SoftRenderer::DrawMesh3D(const Mesh& InMesh, const Matrix4x4& InMatrix, con
 	}
 
 	// 정점 변환 진행
-	VertexShader3D(vertices, InMatrix);
+
 
 	// 삼각형 별로 그리기
 	for (int ti = 0; ti < triangleCount; ++ti)
