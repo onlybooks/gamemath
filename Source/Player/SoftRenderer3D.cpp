@@ -56,7 +56,8 @@ void SoftRenderer::LoadScene3D()
 	mainCamera.GetTransform().SetRotation(Rotator(180.f, 0.f, 0.f));
 }
 
-// 게임 로직과 렌더링 로직이 공유하는 변수
+// 실습 설정을 위한 변수
+
 
 // 게임 로직을 담당하는 함수
 void SoftRenderer::Update3D(float InDeltaSeconds)
