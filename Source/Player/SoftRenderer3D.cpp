@@ -130,7 +130,14 @@ void SoftRenderer::Render3D()
 		if (gameObject == PlayerGo)
 		{
 			// 플레이어 관련 정보
+			Vector4 clippedPos = pvMatrix * Vector4(transform.GetPosition());
+			float cameraDepth = clippedPos.W;
+			if (cameraDepth == 0) cameraDepth = SMALL_NUMBER;
+			float ndcZ = clippedPos.Z / cameraDepth;
+
 			r.PushStatisticText("Player: " + transform.GetPosition().ToString());
+			r.PushStatisticText("Depth: " + std::to_string(ndcZ));
+			r.PushStatisticText("Distance: " + std::to_string(clippedPos.W));
 		}
 	}
 
