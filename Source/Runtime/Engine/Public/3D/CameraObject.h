@@ -17,20 +17,24 @@ public:
 	const TransformComponent& GetTransform() const { return _Transform; }
 
 	// 카메라 값을 가져오는 함수
-	void SetLookAtRotation(const Vector3& InTargetPosition, const Vector3& InUp = Vector3::UnitY);
+	float GetFOV() const { return _FOV; }
 	const ScreenPoint& GetViewportSize() const { return _ViewportSize; }
 
 	// 카메라 값을 설정하는 함수
+	void SetFOV(float InFOV) { _FOV = InFOV; }
 	void SetViewportSize(const ScreenPoint& InViewportSize) { _ViewportSize = InViewportSize; }
+	void SetLookAtRotation(const Vector3& InTargetPosition, const Vector3& InUp = Vector3::UnitY);
 
 	// 행렬 생성
 	FORCEINLINE void GetViewAxes(Vector3& OutViewX, Vector3& OutViewY, Vector3& OutViewZ) const;
 	FORCEINLINE Matrix4x4 GetViewMatrix() const;
 	FORCEINLINE Matrix4x4 GetViewMatrixRotationOnly() const;
+	FORCEINLINE Matrix4x4 GetPerspectiveMatrix() const;
 
 private:
 	TransformComponent _Transform;
 	ScreenPoint _ViewportSize;
+	float _FOV = 60.f;
 };
 
 FORCEINLINE void CameraObject::GetViewAxes(Vector3& OutViewX, Vector3& OutViewY, Vector3& OutViewZ) const
@@ -65,6 +69,19 @@ FORCEINLINE Matrix4x4 CameraObject::GetViewMatrixRotationOnly() const
 		Vector4(Vector3(viewX.Y, viewY.Y, viewZ.Y), false),
 		Vector4(Vector3(viewX.Z, viewY.Z, viewZ.Z), false),
 		Vector4::UnitW
+	);
+}
+
+FORCEINLINE Matrix4x4 CameraObject::GetPerspectiveMatrix() const
+{
+	float invA = 1.f / _ViewportSize.AspectRatio();
+	float d = 1.f / tanf(Math::Deg2Rad(_FOV) * 0.5f);
+
+	return Matrix4x4(
+		Vector4::UnitX * invA * d,
+		Vector4::UnitY * d,
+		Vector4(0.f, 0.f, -1.f, 0.f),
+		Vector4(0.f, 0.f, 0, 1.f)
 	);
 }
 
