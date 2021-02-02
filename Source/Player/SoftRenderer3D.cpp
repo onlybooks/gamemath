@@ -82,7 +82,8 @@ void SoftRenderer::Update3D(float InDeltaSeconds)
 
 	// 입력에 따른 카메라 트랜스폼의 변경
 	camera.SetLookAtRotation(playerTransform.GetPosition());
-
+	float deltaFOV = input.GetAxis(InputAxis::WAxis) * moveSpeed * InDeltaSeconds;
+	camera.SetFOV(Math::Clamp(camera.GetFOV() + deltaFOV, 15.f, 150.f));
 }
 
 // 애니메이션 로직을 담당하는 함수
@@ -108,6 +109,7 @@ void SoftRenderer::Render3D()
 
 	// 렌더링 로직의 로컬 변수
 	const Matrix4x4 vMatrix = mainCamera.GetViewMatrix();
+	const Matrix4x4 pMatrix = mainCamera.GetPerspectiveMatrix();
 
 	for (auto it = g.SceneBegin(); it != g.SceneEnd(); ++it)
 	{
@@ -121,7 +123,7 @@ void SoftRenderer::Render3D()
 		const Mesh& mesh = g.GetMesh(gameObject.GetMeshKey());
 		const TransformComponent& transform = gameObject.GetTransform();
 
-		Matrix4x4 finalMatrix = vMatrix * transform.GetModelingMatrix();
+		Matrix4x4 finalMatrix = pMatrix * vMatrix * transform.GetModelingMatrix();
 
 		// 메시 그리기
 		DrawMesh3D(mesh, finalMatrix, gameObject.GetColor());
@@ -187,6 +189,34 @@ void SoftRenderer::DrawTriangle3D(std::vector<Vertex3D>& InVertices, const Linea
 	auto& r = GetRenderer();
 	const GameEngine& g = Get3DGameEngine();
 
+	// 백페이스 컬링
+	Vector3 edge1 = (InVertices[1].Position - InVertices[0].Position).ToVector3();
+	Vector3 edge2 = (InVertices[2].Position - InVertices[0].Position).ToVector3();
+	Vector3 faceNormal = -edge1.Cross(edge2);
+	Vector3 viewDirection = Vector3::UnitZ;
+	if (faceNormal.Dot(viewDirection) >= 0.f)
+	{
+		return;
+	}
+
+	// 클립 좌표를 NDC 좌표로 변경
+	for (auto& v : InVertices)
+	{
+		// 무한 원점인 경우, 약간 보정해준다.
+		if (v.Position.Z == 0.f) v.Position.Z = SMALL_NUMBER;
+
+		float invZ = 1.f / v.Position.Z;
+		v.Position.X *= invZ;
+		v.Position.Y *= invZ;
+		v.Position.Z *= invZ;
+	}
+
+	// NDC 좌표를 화면 좌표로 늘리기
+	for (auto& v : InVertices)
+	{
+		v.Position.X *= _ScreenSize.X * 0.5f;
+		v.Position.Y *= _ScreenSize.Y * 0.5f;
+	}
 
 	LinearColor finalColor = _WireframeColor;
 	if (InColor != LinearColor::Error)
