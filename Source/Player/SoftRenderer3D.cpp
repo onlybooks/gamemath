@@ -108,8 +108,7 @@ void SoftRenderer::Render3D()
 	DrawGizmo3D();
 
 	// 렌더링 로직의 로컬 변수
-	const Matrix4x4 vMatrix = mainCamera.GetViewMatrix();
-	const Matrix4x4 pMatrix = mainCamera.GetPerspectiveMatrix();
+	const Matrix4x4 pvMatrix = mainCamera.GetPerspectiveViewMatrix();
 
 	for (auto it = g.SceneBegin(); it != g.SceneEnd(); ++it)
 	{
@@ -123,14 +122,14 @@ void SoftRenderer::Render3D()
 		const Mesh& mesh = g.GetMesh(gameObject.GetMeshKey());
 		const TransformComponent& transform = gameObject.GetTransform();
 
-		Matrix4x4 finalMatrix = pMatrix * vMatrix * transform.GetModelingMatrix();
+		Matrix4x4 finalMatrix = pvMatrix * transform.GetModelingMatrix();
 
 		// 메시 그리기
 		DrawMesh3D(mesh, finalMatrix, gameObject.GetColor());
 
 		if (gameObject == PlayerGo)
 		{
-			// 플레이어의 위치
+			// 플레이어 관련 정보
 			r.PushStatisticText("Player: " + transform.GetPosition().ToString());
 		}
 	}
