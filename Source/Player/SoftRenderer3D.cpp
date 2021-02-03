@@ -68,7 +68,6 @@ void SoftRenderer::Update3D(float InDeltaSeconds)
 
 	// 게임 로직의 로컬 변수
 	static float moveSpeed = 500.f;
-	static float rotateSpeed = 180.f;
 
 	// 게임 로직에서 사용할 게임 오브젝트 레퍼런스
 	GameObject& goPlayer = g.GetGameObject(PlayerGo);
@@ -78,7 +77,6 @@ void SoftRenderer::Update3D(float InDeltaSeconds)
 	// 입력에 따른 플레이어 트랜스폼의 변경
 	Vector3 inputVector = Vector3(input.GetAxis(InputAxis::XAxis), input.GetAxis(InputAxis::YAxis), input.GetAxis(InputAxis::ZAxis)).GetNormalize();
 	playerTransform.AddPosition(inputVector * moveSpeed * InDeltaSeconds);
-	playerTransform.AddPitchRotation(-input.GetAxis(InputAxis::WAxis) * rotateSpeed * InDeltaSeconds);
 
 	// 입력에 따른 카메라 트랜스폼의 변경
 	camera.SetLookAtRotation(playerTransform.GetPosition());
