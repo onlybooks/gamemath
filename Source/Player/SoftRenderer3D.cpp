@@ -82,7 +82,6 @@ void SoftRenderer::Update3D(float InDeltaSeconds)
 
 	// 게임 로직의 로컬 변수
 	static float moveSpeed = 500.f;
-	static float rotateSpeed = 180.f;
 	static float fovSpeed = 100.f;
 	static float minFOV = 15.f;
 	static float maxFOV = 150.f;
@@ -95,7 +94,6 @@ void SoftRenderer::Update3D(float InDeltaSeconds)
 	// 입력에 따른 플레이어 트랜스폼의 변경
 	Vector3 inputVector = Vector3(input.GetAxis(InputAxis::XAxis), input.GetAxis(InputAxis::YAxis), input.GetAxis(InputAxis::ZAxis)).GetNormalize();
 	playerTransform.AddPosition(inputVector * moveSpeed * InDeltaSeconds);
-	playerTransform.AddPitchRotation(-input.GetAxis(InputAxis::WAxis) * rotateSpeed * InDeltaSeconds);
 
 	// 입력에 따른 카메라 트랜스폼의 변경
 	camera.SetLookAtRotation(playerTransform.GetPosition());
@@ -315,11 +313,32 @@ void SoftRenderer::DrawTriangle3D(std::vector<Vertex3D>& InVertices, const Linea
 				float t = (wdotu * udotv - wdotv * udotu) * invDenominator;
 				float oneMinusST = 1.f - s - t;
 
+				// 투영보정에 사용할 공통 분모
+				float z = invZ0 * oneMinusST + invZ1 * s + invZ2 * t;
+				float invZ = 1.f / z;
+
 				if (((s >= 0.f) && (s <= 1.f)) && ((t >= 0.f) && (t <= 1.f)) && ((oneMinusST >= 0.f) && (oneMinusST <= 1.f)))
 				{
 					// 투영보정에 사용할 공통 분모
 					float z = invZ0 * oneMinusST + invZ1 * s + invZ2 * t;
 					float invZ = 1.f / z;
+
+					// 깊이 버퍼 테스팅
+					if (toggleDepthTesting)
+					{
+						float newDepth = (InVertices[0].Position.Z * oneMinusST * invZ0 + InVertices[1].Position.Z * s * invZ1 + InVertices[2].Position.Z * t * invZ2) * invZ;
+						float prevDepth = r.GetDepthBufferValue(fragment);
+						if (newDepth < prevDepth)
+						{
+							// 픽셀을 처리하기 전 깊이 값을 버퍼에 보관
+							r.SetDepthBufferValue(fragment, newDepth);
+						}
+						else
+						{
+							// 이미 앞에 무언가 그려져있으므로 픽셀그리기는 생략
+							continue;
+						}
+					}
 
 					Vector2 targetUV = (InVertices[0].UV * oneMinusST * invZ0 + InVertices[1].UV * s * invZ1 + InVertices[2].UV * t * invZ2) * invZ;
 					r.DrawPoint(fragment, FragmentShader3D(mainTexture.GetSample(targetUV), LinearColor::White));
