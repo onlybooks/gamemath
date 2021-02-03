@@ -143,27 +143,12 @@ void SoftRenderer::Render3D()
 		const Mesh& mesh = g.GetMesh(gameObject.GetMeshKey());
 		const TransformComponent& transform = gameObject.GetTransform();
 
+		// 최종 행렬 계산
 		Matrix4x4 finalMatrix = pvMatrix * transform.GetModelingMatrix();
 
 		// 메시 그리기
 		DrawMesh3D(mesh, finalMatrix, gameObject.GetColor());
-
-		if (gameObject == PlayerGo)
-		{
-			// 플레이어 관련 정보
-			Vector4 clippedPos = pvMatrix * Vector4(transform.GetPosition());
-			float cameraDepth = clippedPos.W;
-			if (cameraDepth == 0) cameraDepth = SMALL_NUMBER;
-			float ndcZ = clippedPos.Z / cameraDepth;
-
-			r.PushStatisticText("Player: " + transform.GetPosition().ToString());
-			r.PushStatisticText("Depth: " + std::to_string(ndcZ));
-			r.PushStatisticText("Distance: " + std::to_string(clippedPos.W));
-		}
 	}
-
-	r.PushStatisticText("Camera: " + mainCamera.GetTransform().GetPosition().ToString());
-	r.PushStatisticText("FOV : " + std::to_string(mainCamera.GetFOV()));
 }
 
 // 메시를 그리는 함수
