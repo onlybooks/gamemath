@@ -40,24 +40,38 @@ void SoftRenderer::LoadScene3D()
 	GameEngine& g = Get3DGameEngine();
 
 	// 플레이어
-	constexpr float playerScale = 100.f;
+	constexpr float cubeScale = 100.f;
 
 	// 플레이어 설정
 	GameObject& goPlayer = g.CreateNewGameObject(PlayerGo);
 	goPlayer.SetMesh(GameEngine::CubeMesh);
 	goPlayer.GetTransform().SetPosition(Vector3::Zero);
-	goPlayer.GetTransform().SetScale(Vector3::One * playerScale);
-	goPlayer.GetTransform().SetRotation(Rotator(0.f, 0.f, 0.f));
-	goPlayer.SetColor(LinearColor::Blue);
+	goPlayer.GetTransform().SetScale(Vector3::One * cubeScale);
+
+	// 고정 시드로 랜덤하게 생성
+	std::mt19937 generator(0);
+	std::uniform_real_distribution<float> distZ(-1500.f, 0.f);
+	std::uniform_real_distribution<float> distXY(-1000.f, 1000.f);
+
+	// 100개의 큐브 게임 오브젝트 생성
+	for (int i = 0; i < 100; ++i)
+	{
+		char name[64];
+		std::snprintf(name, sizeof(name), "GameObject%d", i);
+		GameObject& newGo = g.CreateNewGameObject(name);
+		newGo.GetTransform().SetPosition(Vector3(distXY(generator), distXY(generator), distZ(generator)));
+		newGo.GetTransform().SetScale(Vector3::One * cubeScale);
+		newGo.SetMesh(GameEngine::CubeMesh);
+	}
 
 	// 카메라 설정
 	CameraObject& mainCamera = g.GetMainCamera();
-	mainCamera.GetTransform().SetPosition(Vector3(0.f, 0.f, 300.f));
+	mainCamera.GetTransform().SetPosition(Vector3(0.f, 0.f, 400.f));
 	mainCamera.GetTransform().SetRotation(Rotator(180.f, 0.f, 0.f));
 }
 
 // 실습 설정을 위한 변수
-
+bool toggleDepthTesting = true;
 
 // 게임 로직을 담당하는 함수
 void SoftRenderer::Update3D(float InDeltaSeconds)
@@ -87,6 +101,12 @@ void SoftRenderer::Update3D(float InDeltaSeconds)
 	camera.SetLookAtRotation(playerTransform.GetPosition());
 	float deltaFOV = input.GetAxis(InputAxis::WAxis) * fovSpeed * InDeltaSeconds;
 	camera.SetFOV(Math::Clamp(camera.GetFOV() + deltaFOV, minFOV, maxFOV));
+
+	// 실습 환경의 설정
+	if (input.IsReleased(InputButton::Space))
+	{
+		toggleDepthTesting = !toggleDepthTesting;
+	}
 }
 
 // 애니메이션 로직을 담당하는 함수
@@ -202,12 +222,12 @@ void SoftRenderer::DrawTriangle3D(std::vector<Vertex3D>& InVertices, const Linea
 	for (auto& v : InVertices)
 	{
 		// 무한 원점인 경우, 약간 보정해준다.
-		if (v.Position.Z == 0.f) v.Position.Z = SMALL_NUMBER;
+		if (v.Position.W == 0.f) v.Position.W = SMALL_NUMBER;
 
-		float invZ = 1.f / v.Position.Z;
-		v.Position.X *= invZ;
-		v.Position.Y *= invZ;
-		v.Position.Z *= invZ;
+		float invW = 1.f / v.Position.W;
+		v.Position.X *= invW;
+		v.Position.Y *= invW;
+		v.Position.Z *= invW;
 	}
 
 	// 백페이스 컬링
@@ -295,12 +315,12 @@ void SoftRenderer::DrawTriangle3D(std::vector<Vertex3D>& InVertices, const Linea
 				float t = (wdotu * udotv - wdotv * udotu) * invDenominator;
 				float oneMinusST = 1.f - s - t;
 
-				// 투영보정에 사용할 공통 분모
-				float z = invZ0 * oneMinusST + invZ1 * s + invZ2 * t;
-				float invZ = 1.f / z;
-
 				if (((s >= 0.f) && (s <= 1.f)) && ((t >= 0.f) && (t <= 1.f)) && ((oneMinusST >= 0.f) && (oneMinusST <= 1.f)))
 				{
+					// 투영보정에 사용할 공통 분모
+					float z = invZ0 * oneMinusST + invZ1 * s + invZ2 * t;
+					float invZ = 1.f / z;
+
 					Vector2 targetUV = (InVertices[0].UV * oneMinusST * invZ0 + InVertices[1].UV * s * invZ1 + InVertices[2].UV * t * invZ2) * invZ;
 					r.DrawPoint(fragment, FragmentShader3D(mainTexture.GetSample(targetUV), LinearColor::White));
 				}
