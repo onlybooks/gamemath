@@ -52,7 +52,7 @@ void SoftRenderer::LoadScene3D()
 
 	// 카메라 설정
 	CameraObject& mainCamera = g.GetMainCamera();
-	mainCamera.GetTransform().SetPosition(Vector3(0.f, 0.f, 500.f));
+	mainCamera.GetTransform().SetPosition(Vector3(0.f, 0.f, 300.f));
 	mainCamera.GetTransform().SetRotation(Rotator(180.f, 0.f, 0.f));
 }
 
@@ -69,6 +69,9 @@ void SoftRenderer::Update3D(float InDeltaSeconds)
 	// 게임 로직의 로컬 변수
 	static float moveSpeed = 500.f;
 	static float rotateSpeed = 180.f;
+	static float fovSpeed = 100.f;
+	static float minFOV = 15.f;
+	static float maxFOV = 150.f;
 
 	// 게임 로직에서 사용할 게임 오브젝트 레퍼런스
 	GameObject& goPlayer = g.GetGameObject(PlayerGo);
@@ -82,8 +85,8 @@ void SoftRenderer::Update3D(float InDeltaSeconds)
 
 	// 입력에 따른 카메라 트랜스폼의 변경
 	camera.SetLookAtRotation(playerTransform.GetPosition());
-	float deltaFOV = input.GetAxis(InputAxis::WAxis) * moveSpeed * InDeltaSeconds;
-	camera.SetFOV(Math::Clamp(camera.GetFOV() + deltaFOV, 15.f, 150.f));
+	float deltaFOV = input.GetAxis(InputAxis::WAxis) * fovSpeed * InDeltaSeconds;
+	camera.SetFOV(Math::Clamp(camera.GetFOV() + deltaFOV, minFOV, maxFOV));
 }
 
 // 애니메이션 로직을 담당하는 함수
@@ -195,16 +198,6 @@ void SoftRenderer::DrawTriangle3D(std::vector<Vertex3D>& InVertices, const Linea
 	auto& r = GetRenderer();
 	const GameEngine& g = Get3DGameEngine();
 
-	// 백페이스 컬링
-	Vector3 edge1 = (InVertices[1].Position - InVertices[0].Position).ToVector3();
-	Vector3 edge2 = (InVertices[2].Position - InVertices[0].Position).ToVector3();
-	Vector3 faceNormal = -edge1.Cross(edge2);
-	Vector3 viewDirection = Vector3::UnitZ;
-	if (faceNormal.Dot(viewDirection) >= 0.f)
-	{
-		return;
-	}
-
 	// 클립 좌표를 NDC 좌표로 변경
 	for (auto& v : InVertices)
 	{
@@ -217,6 +210,16 @@ void SoftRenderer::DrawTriangle3D(std::vector<Vertex3D>& InVertices, const Linea
 		v.Position.Z *= invZ;
 	}
 
+	// 백페이스 컬링
+	Vector3 edge1 = (InVertices[1].Position - InVertices[0].Position).ToVector3();
+	Vector3 edge2 = (InVertices[2].Position - InVertices[0].Position).ToVector3();
+	Vector3 faceNormal = -edge1.Cross(edge2);
+	Vector3 viewDirection = Vector3::UnitZ;
+	if (faceNormal.Dot(viewDirection) >= 0.f)
+	{
+		return;
+	}
+
 	// NDC 좌표를 화면 좌표로 늘리기
 	for (auto& v : InVertices)
 	{
@@ -224,14 +227,75 @@ void SoftRenderer::DrawTriangle3D(std::vector<Vertex3D>& InVertices, const Linea
 		v.Position.Y *= _ScreenSize.Y * 0.5f;
 	}
 
-	LinearColor finalColor = _WireframeColor;
-	if (InColor != LinearColor::Error)
+	if (IsWireframeDrawing())
 	{
-		finalColor = InColor;
-	}
+		LinearColor finalColor = _WireframeColor;
+		if (InColor != LinearColor::Error)
+		{
+			finalColor = InColor;
+		}
 
-	r.DrawLine(InVertices[0].Position, InVertices[1].Position, finalColor);
-	r.DrawLine(InVertices[0].Position, InVertices[2].Position, finalColor);
-	r.DrawLine(InVertices[1].Position, InVertices[2].Position, finalColor);
+		r.DrawLine(InVertices[0].Position, InVertices[1].Position, finalColor);
+		r.DrawLine(InVertices[0].Position, InVertices[2].Position, finalColor);
+		r.DrawLine(InVertices[1].Position, InVertices[2].Position, finalColor);
+	}
+	else
+	{
+		const Texture& mainTexture = g.GetTexture(GameEngine::BaseTexture);
+
+		// 삼각형 칠하기
+		// 삼각형의 영역 설정
+		Vector2 minPos(Math::Min3(InVertices[0].Position.X, InVertices[1].Position.X, InVertices[2].Position.X), Math::Min3(InVertices[0].Position.Y, InVertices[1].Position.Y, InVertices[2].Position.Y));
+		Vector2 maxPos(Math::Max3(InVertices[0].Position.X, InVertices[1].Position.X, InVertices[2].Position.X), Math::Max3(InVertices[0].Position.Y, InVertices[1].Position.Y, InVertices[2].Position.Y));
+
+		// 무게중심좌표를 위해 점을 벡터로 변환
+		Vector2 u = InVertices[1].Position.ToVector2() - InVertices[0].Position.ToVector2();
+		Vector2 v = InVertices[2].Position.ToVector2() - InVertices[0].Position.ToVector2();
+
+		// 공통 분모 값 ( uu * vv - uv * uv )
+		float udotv = u.Dot(v);
+		float vdotv = v.Dot(v);
+		float udotu = u.Dot(u);
+		float denominator = udotv * udotv - vdotv * udotu;
+
+		// 퇴화 삼각형 판정.
+		if (denominator == 0.f)
+		{
+			return;
+		}
+
+		float invDenominator = 1.f / denominator;
+
+		ScreenPoint lowerLeftPoint = ScreenPoint::ToScreenCoordinate(_ScreenSize, minPos);
+		ScreenPoint upperRightPoint = ScreenPoint::ToScreenCoordinate(_ScreenSize, maxPos);
+
+		// 두 점이 화면 밖을 벗어나는 경우 클리핑 처리
+		lowerLeftPoint.X = Math::Max(0, lowerLeftPoint.X);
+		lowerLeftPoint.Y = Math::Min(_ScreenSize.Y, lowerLeftPoint.Y);
+		upperRightPoint.X = Math::Min(_ScreenSize.X, upperRightPoint.X);
+		upperRightPoint.Y = Math::Max(0, upperRightPoint.Y);
+
+		// 삼각형 영역 내 모든 점을 점검하고 색칠
+		for (int x = lowerLeftPoint.X; x <= upperRightPoint.X; ++x)
+		{
+			for (int y = upperRightPoint.Y; y <= lowerLeftPoint.Y; ++y)
+			{
+				ScreenPoint fragment = ScreenPoint(x, y);
+				Vector2 pointToTest = fragment.ToCartesianCoordinate(_ScreenSize);
+				Vector2 w = pointToTest - InVertices[0].Position.ToVector2();
+				float wdotu = w.Dot(u);
+				float wdotv = w.Dot(v);
+
+				float s = (wdotv * udotv - wdotu * vdotv) * invDenominator;
+				float t = (wdotu * udotv - wdotv * udotu) * invDenominator;
+				float oneMinusST = 1.f - s - t;
+				if (((s >= 0.f) && (s <= 1.f)) && ((t >= 0.f) && (t <= 1.f)) && ((oneMinusST >= 0.f) && (oneMinusST <= 1.f)))
+				{
+					Vector2 targetUV = InVertices[0].UV * oneMinusST + InVertices[1].UV * s + InVertices[2].UV * t;
+					r.DrawPoint(fragment, FragmentShader3D(mainTexture.GetSample(targetUV), LinearColor::White));
+				}
+			}
+		}
+	}
 }
 
