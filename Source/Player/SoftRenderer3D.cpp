@@ -130,23 +130,20 @@ void SoftRenderer::Render3D()
 
 	// 렌더링 로직의 로컬 변수
 	const Matrix4x4 vMatrix = mainCamera.GetViewMatrix();
+	const Matrix4x4 pMatrix = mainCamera.GetPerspectiveMatrix();
 	const Matrix4x4 pvMatrix = mainCamera.GetPerspectiveViewMatrix();
 
-	// 절두체 구축을 위한 카메라의 설정 값
-	float nearZ = mainCamera.GetNearZ();
-	float farZ = mainCamera.GetFarZ();
-	float halfFOV = mainCamera.GetFOV() * 0.5f;
-	float pSin = 0.f, pCos = 0.f;
-	Math::GetSinCos(pSin, pCos, halfFOV);
+	// 절두체 구축을 위한 투영 행렬의 설정
+	Matrix4x4 ptMatrix = pMatrix.Tranpose();
 
 	// 절두체를 구성하는 평면의 방정식
-	static std::array<Plane, 6> frustumPlanes = {
-		Plane(Vector3(pCos, 0.f, pSin), 0.f), // +Y
-		Plane(Vector3(-pCos, 0.f, pSin), 0.f), // -Y
-		Plane(Vector3(0.f, pCos, pSin), 0.f), // +X
-		Plane(Vector3(0.f, -pCos, pSin), 0.f), // -X
-		Plane(Vector3::UnitZ, nearZ), // +Z
-		Plane(-Vector3::UnitZ, -farZ) // -Z
+	std::array<Plane, 6> frustumPlanes = {
+		Plane(-(ptMatrix[3] - ptMatrix[1])), // +Y
+		Plane(-(ptMatrix[3] + ptMatrix[1])), // -Y
+		Plane(-(ptMatrix[3] - ptMatrix[0])), // +X
+		Plane(-(ptMatrix[3] + ptMatrix[0])), // -X
+		Plane(-(ptMatrix[3] - ptMatrix[2])),  // +Z
+		Plane(-(ptMatrix[3] + ptMatrix[2])), // -Z
 	};
 
 	// 절두체 선언
