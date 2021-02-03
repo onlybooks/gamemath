@@ -37,37 +37,37 @@ static const std::string PlayerGo = "Player";
 // 최초 씬 로딩을 담당하는 함수
 void SoftRenderer::LoadScene3D()
 {
-	GameEngine& g = Get3DGameEngine();
+    GameEngine& g = Get3DGameEngine();
 
-	// 플레이어
-	constexpr float cubeScale = 100.f;
+    // 플레이어
+    constexpr float cubeScale = 100.f;
 
-	// 플레이어 설정
-	GameObject& goPlayer = g.CreateNewGameObject(PlayerGo);
-	goPlayer.SetMesh(GameEngine::CubeMesh);
-	goPlayer.GetTransform().SetPosition(Vector3::Zero);
-	goPlayer.GetTransform().SetScale(Vector3::One * cubeScale);
+    // 플레이어 설정
+    GameObject& goPlayer = g.CreateNewGameObject(PlayerGo);
+    goPlayer.SetMesh(GameEngine::CubeMesh);
+    goPlayer.GetTransform().SetPosition(Vector3::Zero);
+    goPlayer.GetTransform().SetScale(Vector3::One * cubeScale);
 
-	// 고정 시드로 랜덤하게 생성
-	std::mt19937 generator(0);
-	std::uniform_real_distribution<float> distZ(-1500.f, 0.f);
-	std::uniform_real_distribution<float> distXY(-1000.f, 1000.f);
+    // 고정 시드로 랜덤하게 생성
+    std::mt19937 generator(0);
+    std::uniform_real_distribution<float> distZ(-3000.f, -1000.f);
+    std::uniform_real_distribution<float> distXY(-3000.f, 3000.f);
 
-	// 100개의 큐브 게임 오브젝트 생성
-	for (int i = 0; i < 100; ++i)
-	{
-		char name[64];
-		std::snprintf(name, sizeof(name), "GameObject%d", i);
-		GameObject& newGo = g.CreateNewGameObject(name);
-		newGo.GetTransform().SetPosition(Vector3(distXY(generator), distXY(generator), distZ(generator)));
-		newGo.GetTransform().SetScale(Vector3::One * cubeScale);
-		newGo.SetMesh(GameEngine::CubeMesh);
-	}
+    // 100개의 큐브 게임 오브젝트 생성
+    for (int i = 0; i < 500; ++i)
+    {
+        char name[64];
+        std::snprintf(name, sizeof(name), "GameObject%d", i);
+        GameObject& newGo = g.CreateNewGameObject(name);
+        newGo.GetTransform().SetPosition(Vector3(distXY(generator), distXY(generator), distZ(generator)));
+        newGo.GetTransform().SetScale(Vector3::One * cubeScale);
+        newGo.SetMesh(GameEngine::CubeMesh);
+    }
 
-	// 카메라 설정
-	CameraObject& mainCamera = g.GetMainCamera();
-	mainCamera.GetTransform().SetPosition(Vector3(0.f, 0.f, 400.f));
-	mainCamera.GetTransform().SetRotation(Rotator(180.f, 0.f, 0.f));
+    // 카메라 설정
+    CameraObject& mainCamera = g.GetMainCamera();
+    mainCamera.GetTransform().SetPosition(Vector3(0.f, 0.f, 400.f));
+    mainCamera.GetTransform().SetRotation(Rotator(180.f, 0.f, 0.f));
 }
 
 // 실습 설정을 위한 변수
@@ -129,7 +129,33 @@ void SoftRenderer::Render3D()
 	DrawGizmo3D();
 
 	// 렌더링 로직의 로컬 변수
+	const Matrix4x4 vMatrix = mainCamera.GetViewMatrix();
 	const Matrix4x4 pvMatrix = mainCamera.GetPerspectiveViewMatrix();
+
+	// 절두체 구축을 위한 카메라의 설정 값
+	float nearZ = mainCamera.GetNearZ();
+	float farZ = mainCamera.GetFarZ();
+	float halfFOV = mainCamera.GetFOV() * 0.5f;
+	float pSin = 0.f, pCos = 0.f;
+	Math::GetSinCos(pSin, pCos, halfFOV);
+
+	// 절두체를 구성하는 평면의 방정식
+	static std::array<Plane, 6> frustumPlanes = {
+		Plane(Vector3(pCos, 0.f, pSin), 0.f), // +Y
+		Plane(Vector3(-pCos, 0.f, pSin), 0.f), // -Y
+		Plane(Vector3(0.f, pCos, pSin), 0.f), // +X
+		Plane(Vector3(0.f, -pCos, pSin), 0.f), // -X
+		Plane(Vector3::UnitZ, nearZ), // +Z
+		Plane(-Vector3::UnitZ, -farZ) // -Z
+	};
+
+	// 절두체 선언
+	Frustum frustumInView(frustumPlanes);
+
+	// 절두체 컬링 테스트를 위한 통계 변수
+	size_t totalObjects = g.GetScene().size();
+	size_t culledObjects = 0;
+	size_t renderedObjects = 0;
 
 	for (auto it = g.SceneBegin(); it != g.SceneEnd(); ++it)
 	{
@@ -143,12 +169,28 @@ void SoftRenderer::Render3D()
 		const Mesh& mesh = g.GetMesh(gameObject.GetMeshKey());
 		const TransformComponent& transform = gameObject.GetTransform();
 
+		// 절두체 컬링 구현
+		Vector4 viewPos = vMatrix * Vector4(transform.GetPosition());
+		if (frustumInView.CheckBound(viewPos.ToVector3()) == BoundCheckResult::Outside)
+		{
+			// 그리지 않고 건너뜀
+			culledObjects++;
+			continue;
+		}
+
 		// 최종 행렬 계산
 		Matrix4x4 finalMatrix = pvMatrix * transform.GetModelingMatrix();
 
 		// 메시 그리기
 		DrawMesh3D(mesh, finalMatrix, gameObject.GetColor());
+
+		// 그린 물체를 통계에 포함
+		renderedObjects++;
 	}
+
+	r.PushStatisticText("Total GameObjects : " + std::to_string(totalObjects));
+	r.PushStatisticText("Culled GameObjects : " + std::to_string(culledObjects));
+	r.PushStatisticText("Rendered GameObjects : " + std::to_string(renderedObjects));
 }
 
 // 메시를 그리는 함수
