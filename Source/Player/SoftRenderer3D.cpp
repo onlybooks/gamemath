@@ -215,6 +215,11 @@ void SoftRenderer::DrawTriangle3D(std::vector<Vertex3D>& InVertices, const Linea
 {
 	auto& r = GetRenderer();
 	const GameEngine& g = Get3DGameEngine();
+	const CameraObject& mainCamera = g.GetMainCamera();
+
+	// 카메라의 근평면과 원평면 값
+	float n = mainCamera.GetNearZ();
+	float f = mainCamera.GetFarZ();
 
 	// 클립 좌표를 NDC 좌표로 변경
 	for (auto& v : InVertices)
@@ -340,6 +345,13 @@ void SoftRenderer::DrawTriangle3D(std::vector<Vertex3D>& InVertices, const Linea
 					if (IsDepthBufferDrawing())
 					{
 						float grayScale = (newDepth + 1.f) * 0.5f;
+						if (useLinearVisualization)
+						{
+							// 시각화를 위해 선형화된 흑백 값으로 변환
+							grayScale = (invZ - n) / (f - n);
+						}
+
+						// 뎁스 버퍼 그리기
 						r.DrawPoint(fragment, LinearColor::White * grayScale);
 					}
 					else
