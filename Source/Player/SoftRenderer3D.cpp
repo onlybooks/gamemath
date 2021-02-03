@@ -82,7 +82,6 @@ void SoftRenderer::Update3D(float InDeltaSeconds)
 
 	// 게임 로직의 로컬 변수
 	static float moveSpeed = 500.f;
-	static float rotateSpeed = 180.f;
 	static float fovSpeed = 100.f;
 	static float minFOV = 15.f;
 	static float maxFOV = 150.f;
@@ -95,7 +94,6 @@ void SoftRenderer::Update3D(float InDeltaSeconds)
 	// 입력에 따른 플레이어 트랜스폼의 변경
 	Vector3 inputVector = Vector3(input.GetAxis(InputAxis::XAxis), input.GetAxis(InputAxis::YAxis), input.GetAxis(InputAxis::ZAxis)).GetNormalize();
 	playerTransform.AddPosition(inputVector * moveSpeed * InDeltaSeconds);
-	playerTransform.AddPitchRotation(-input.GetAxis(InputAxis::WAxis) * rotateSpeed * InDeltaSeconds);
 
 	// 입력에 따른 카메라 트랜스폼의 변경
 	camera.SetLookAtRotation(playerTransform.GetPosition());
