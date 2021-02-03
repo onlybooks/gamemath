@@ -69,6 +69,9 @@ void SoftRenderer::Update3D(float InDeltaSeconds)
 	// 게임 로직의 로컬 변수
 	static float moveSpeed = 500.f;
 	static float rotateSpeed = 180.f;
+	static float fovSpeed = 100.f;
+	static float minFOV = 15.f;
+	static float maxFOV = 150.f;
 
 	// 게임 로직에서 사용할 게임 오브젝트 레퍼런스
 	GameObject& goPlayer = g.GetGameObject(PlayerGo);
@@ -82,8 +85,8 @@ void SoftRenderer::Update3D(float InDeltaSeconds)
 
 	// 입력에 따른 카메라 트랜스폼의 변경
 	camera.SetLookAtRotation(playerTransform.GetPosition());
-	float deltaFOV = input.GetAxis(InputAxis::WAxis) * moveSpeed * InDeltaSeconds;
-	camera.SetFOV(Math::Clamp(camera.GetFOV() + deltaFOV, 15.f, 150.f));
+	float deltaFOV = input.GetAxis(InputAxis::WAxis) * fovSpeed * InDeltaSeconds;
+	camera.SetFOV(Math::Clamp(camera.GetFOV() + deltaFOV, minFOV, maxFOV));
 }
 
 // 애니메이션 로직을 담당하는 함수
@@ -189,16 +192,6 @@ void SoftRenderer::DrawTriangle3D(std::vector<Vertex3D>& InVertices, const Linea
 	auto& r = GetRenderer();
 	const GameEngine& g = Get3DGameEngine();
 
-	// 백페이스 컬링
-	Vector3 edge1 = (InVertices[1].Position - InVertices[0].Position).ToVector3();
-	Vector3 edge2 = (InVertices[2].Position - InVertices[0].Position).ToVector3();
-	Vector3 faceNormal = -edge1.Cross(edge2);
-	Vector3 viewDirection = Vector3::UnitZ;
-	if (faceNormal.Dot(viewDirection) >= 0.f)
-	{
-		return;
-	}
-
 	// 클립 좌표를 NDC 좌표로 변경
 	for (auto& v : InVertices)
 	{
@@ -209,6 +202,16 @@ void SoftRenderer::DrawTriangle3D(std::vector<Vertex3D>& InVertices, const Linea
 		v.Position.X *= invZ;
 		v.Position.Y *= invZ;
 		v.Position.Z *= invZ;
+	}
+
+	// 백페이스 컬링
+	Vector3 edge1 = (InVertices[1].Position - InVertices[0].Position).ToVector3();
+	Vector3 edge2 = (InVertices[2].Position - InVertices[0].Position).ToVector3();
+	Vector3 faceNormal = -edge1.Cross(edge2);
+	Vector3 viewDirection = Vector3::UnitZ;
+	if (faceNormal.Dot(viewDirection) >= 0.f)
+	{
+		return;
 	}
 
 	// NDC 좌표를 화면 좌표로 늘리기
