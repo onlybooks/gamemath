@@ -37,37 +37,39 @@ static const std::string PlayerGo = "Player";
 // 최초 씬 로딩을 담당하는 함수
 void SoftRenderer::LoadScene3D()
 {
-    GameEngine& g = Get3DGameEngine();
+	GameEngine& g = Get3DGameEngine();
 
-    // 플레이어
-    constexpr float cubeScale = 100.f;
+	// 플레이어
+	constexpr float cubeScale = 100.f;
 
-    // 플레이어 설정
-    GameObject& goPlayer = g.CreateNewGameObject(PlayerGo);
-    goPlayer.SetMesh(GameEngine::CubeMesh);
-    goPlayer.GetTransform().SetPosition(Vector3::Zero);
-    goPlayer.GetTransform().SetScale(Vector3::One * cubeScale);
+	// 플레이어 설정
+	GameObject& goPlayer = g.CreateNewGameObject(PlayerGo);
+	goPlayer.SetMesh(GameEngine::CubeMesh);
+	goPlayer.GetTransform().SetPosition(Vector3::Zero);
+	goPlayer.GetTransform().SetScale(Vector3::One * cubeScale);
+	goPlayer.SetColor(LinearColor::White);
 
-    // 고정 시드로 랜덤하게 생성
-    std::mt19937 generator(0);
-    std::uniform_real_distribution<float> distZ(-3000.f, -1000.f);
-    std::uniform_real_distribution<float> distXY(-3000.f, 3000.f);
+	// 고정 시드로 랜덤하게 생성
+	std::mt19937 generator(0);
+	std::uniform_real_distribution<float> distZ(-3000.f, -1000.f);
+	std::uniform_real_distribution<float> distXY(-3000.f, 3000.f);
 
-    // 100개의 큐브 게임 오브젝트 생성
-    for (int i = 0; i < 500; ++i)
-    {
-        char name[64];
-        std::snprintf(name, sizeof(name), "GameObject%d", i);
-        GameObject& newGo = g.CreateNewGameObject(name);
-        newGo.GetTransform().SetPosition(Vector3(distXY(generator), distXY(generator), distZ(generator)));
-        newGo.GetTransform().SetScale(Vector3::One * cubeScale);
-        newGo.SetMesh(GameEngine::CubeMesh);
-    }
+	// 100개의 큐브 게임 오브젝트 생성
+	for (int i = 0; i < 500; ++i)
+	{
+		char name[64];
+		std::snprintf(name, sizeof(name), "GameObject%d", i);
+		GameObject& newGo = g.CreateNewGameObject(name);
+		newGo.GetTransform().SetPosition(Vector3(distXY(generator), distXY(generator), distZ(generator)));
+		newGo.GetTransform().SetScale(Vector3::One * cubeScale);
+		newGo.SetMesh(GameEngine::CubeMesh);
+		newGo.SetColor(LinearColor::White);
+	}
 
-    // 카메라 설정
-    CameraObject& mainCamera = g.GetMainCamera();
-    mainCamera.GetTransform().SetPosition(Vector3(0.f, 0.f, 400.f));
-    mainCamera.GetTransform().SetRotation(Rotator(180.f, 0.f, 0.f));
+	// 카메라 설정
+	CameraObject& mainCamera = g.GetMainCamera();
+	mainCamera.GetTransform().SetPosition(Vector3(0.f, 0.f, 400.f));
+	mainCamera.GetTransform().SetRotation(Rotator(180.f, 0.f, 0.f));
 }
 
 // 실습 설정을 위한 변수
@@ -147,11 +149,12 @@ void SoftRenderer::Render3D()
 	};
 
 	// 절두체 선언
-	Frustum frustumInView(frustumPlanes);
+	Frustum frustumFromMatrix(frustumPlanes);
 
 	// 절두체 컬링 테스트를 위한 통계 변수
 	size_t totalObjects = g.GetScene().size();
 	size_t culledObjects = 0;
+	size_t intersectedObjects = 0;
 	size_t renderedObjects = 0;
 
 	for (auto it = g.SceneBegin(); it != g.SceneEnd(); ++it)
@@ -166,20 +169,32 @@ void SoftRenderer::Render3D()
 		const Mesh& mesh = g.GetMesh(gameObject.GetMeshKey());
 		const TransformComponent& transform = gameObject.GetTransform();
 
-		// 절두체 컬링 구현
-		Vector4 viewPos = vMatrix * Vector4(transform.GetPosition());
-		if (frustumInView.CheckBound(viewPos.ToVector3()) == BoundCheckResult::Outside)
+		LinearColor finalColor = gameObject.GetColor();
+
+		// 바운딩 영역의 크기를 트랜스폼에 맞게 조정
+		Sphere sphereBound = mesh.GetSphereBound();
+		sphereBound.Radius *= transform.GetScale().Max();
+		sphereBound.Center = (vMatrix * Vector4(transform.GetPosition())).ToVector3();
+
+		// 영역을 사용해 절두체 컬링을 구현
+		auto checkResult = frustumFromMatrix.CheckBound(sphereBound);
+		if (checkResult == BoundCheckResult::Outside)
 		{
-			// 그리지 않고 건너뜀
 			culledObjects++;
 			continue;
+		}
+		else if (checkResult == BoundCheckResult::Intersect)
+		{
+			// 겹친 게임 오브젝트를 통계에 포함
+			intersectedObjects++;
+			finalColor = LinearColor::Red;
 		}
 
 		// 최종 행렬 계산
 		Matrix4x4 finalMatrix = pvMatrix * transform.GetModelingMatrix();
 
 		// 메시 그리기
-		DrawMesh3D(mesh, finalMatrix, gameObject.GetColor());
+		DrawMesh3D(mesh, finalMatrix, finalColor);
 
 		// 그린 물체를 통계에 포함
 		renderedObjects++;
@@ -187,6 +202,7 @@ void SoftRenderer::Render3D()
 
 	r.PushStatisticText("Total GameObjects : " + std::to_string(totalObjects));
 	r.PushStatisticText("Culled GameObjects : " + std::to_string(culledObjects));
+	r.PushStatisticText("Intersected GameObjects : " + std::to_string(intersectedObjects));
 	r.PushStatisticText("Rendered GameObjects : " + std::to_string(renderedObjects));
 }
 
@@ -382,7 +398,7 @@ void SoftRenderer::DrawTriangle3D(std::vector<Vertex3D>& InVertices, const Linea
 					{
 						// 최종 보정보간된 UV 좌표
 						Vector2 targetUV = (InVertices[0].UV * oneMinusST * invZ0 + InVertices[1].UV * s * invZ1 + InVertices[2].UV * t * invZ2) * invZ;
-						r.DrawPoint(fragment, FragmentShader3D(mainTexture.GetSample(targetUV), LinearColor::White));
+						r.DrawPoint(fragment, FragmentShader3D(mainTexture.GetSample(targetUV), InColor));
 					}
 				}
 			}
