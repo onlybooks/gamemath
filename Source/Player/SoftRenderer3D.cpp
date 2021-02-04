@@ -168,8 +168,8 @@ void SoftRenderer::Render3D()
 		Frustum frustumFromMatrix(frustumPlanesFromMatrix);
 
 		// 바운딩 영역을 사용해 절두체 컬링을 구현
-		Sphere sphereBound = mesh.GetSphereBound();
-		auto checkResult = frustumFromMatrix.CheckBound(sphereBound);
+		Box boxBound = mesh.GetBoxBound();
+		auto checkResult = frustumFromMatrix.CheckBound(boxBound);
 		if (checkResult == BoundCheckResult::Outside)
 		{
 			culledObjects++;
