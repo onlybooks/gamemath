@@ -32,48 +32,29 @@ void SoftRenderer::DrawGizmo3D()
 }
 
 // 게임 오브젝트 목록
-static const std::string PlayerGo = "Player";
+static const std::string PlaneGo("Plane");
 
 // 최초 씬 로딩을 담당하는 함수
 void SoftRenderer::LoadScene3D()
 {
 	GameEngine& g = Get3DGameEngine();
 
-	// 플레이어
-	constexpr float cubeScale = 100.f;
-
-	// 플레이어 설정
-	GameObject& goPlayer = g.CreateNewGameObject(PlayerGo);
-	goPlayer.SetMesh(GameEngine::CubeMesh);
-	goPlayer.GetTransform().SetPosition(Vector3::Zero);
-	goPlayer.GetTransform().SetScale(Vector3::One * cubeScale);
-	goPlayer.SetColor(LinearColor::White);
-
-	// 고정 시드로 랜덤하게 생성
-	std::mt19937 generator(0);
-	std::uniform_real_distribution<float> distZ(-3000.f, -1000.f);
-	std::uniform_real_distribution<float> distXY(-3000.f, 3000.f);
-
-	// 100개의 큐브 게임 오브젝트 생성
-	for (int i = 0; i < 500; ++i)
-	{
-		char name[64];
-		std::snprintf(name, sizeof(name), "GameObject%d", i);
-		GameObject& newGo = g.CreateNewGameObject(name);
-		newGo.GetTransform().SetPosition(Vector3(distXY(generator), distXY(generator), distZ(generator)));
-		newGo.GetTransform().SetScale(Vector3::One * cubeScale);
-		newGo.SetMesh(GameEngine::CubeMesh);
-		newGo.SetColor(LinearColor::White);
-	}
+	// 평면의 설정
+	static float planeScale = 1000.f;
+	GameObject& goPlane = g.CreateNewGameObject(PlaneGo);
+	goPlane.SetMesh(GameEngine::PlaneMesh);
+	goPlane.GetTransform().SetScale(Vector3::One * planeScale);
+	goPlane.GetTransform().SetPosition(Vector3(0.f, 0.f, 0.f));
+	goPlane.SetColor(LinearColor::DimGray);
 
 	// 카메라 설정
 	CameraObject& mainCamera = g.GetMainCamera();
-	mainCamera.GetTransform().SetPosition(Vector3(0.f, 0.f, 400.f));
-	mainCamera.GetTransform().SetRotation(Rotator(180.f, 0.f, 0.f));
+	mainCamera.GetTransform().SetPosition(Vector3(0.f, 400.f, 400.f));
+	mainCamera.GetTransform().SetRotation(Rotator(180.f, 0.f, 20.f));
 }
 
 // 실습 설정을 위한 변수
-bool useLinearVisualization = true;
+bool useHomogeneousClipping = true;
 
 // 게임 로직을 담당하는 함수
 void SoftRenderer::Update3D(float InDeltaSeconds)
@@ -83,29 +64,19 @@ void SoftRenderer::Update3D(float InDeltaSeconds)
 	const InputManager& input = g.GetInputManager();
 
 	// 게임 로직의 로컬 변수
-	static float moveSpeed = 500.f;
 	static float fovSpeed = 100.f;
 	static float minFOV = 15.f;
 	static float maxFOV = 150.f;
 
-	// 게임 로직에서 사용할 게임 오브젝트 레퍼런스
-	GameObject& goPlayer = g.GetGameObject(PlayerGo);
-	CameraObject& camera = g.GetMainCamera();
-	TransformComponent& playerTransform = goPlayer.GetTransform();
-
-	// 입력에 따른 플레이어 트랜스폼의 변경
-	Vector3 inputVector = Vector3(input.GetAxis(InputAxis::XAxis), input.GetAxis(InputAxis::YAxis), input.GetAxis(InputAxis::ZAxis)).GetNormalize();
-	playerTransform.AddPosition(inputVector * moveSpeed * InDeltaSeconds);
-
 	// 입력에 따른 카메라 트랜스폼의 변경
-	camera.SetLookAtRotation(playerTransform.GetPosition());
+	CameraObject& camera = g.GetMainCamera();
 	float deltaFOV = input.GetAxis(InputAxis::WAxis) * fovSpeed * InDeltaSeconds;
 	camera.SetFOV(Math::Clamp(camera.GetFOV() + deltaFOV, minFOV, maxFOV));
 
 	// 실습 환경의 설정
 	if (input.IsReleased(InputButton::Space))
 	{
-		useLinearVisualization = !useLinearVisualization;
+		useHomogeneousClipping = !useHomogeneousClipping;
 	}
 }
 
@@ -179,11 +150,10 @@ void SoftRenderer::Render3D()
 		{
 			// 겹친 게임 오브젝트를 통계에 포함
 			intersectedObjects++;
-			finalColor = LinearColor::Red;
 		}
 
 		// 메시 그리기
-		DrawMesh3D(mesh, finalMatrix, finalColor);
+		DrawMesh3D(mesh, finalMatrix, gameObject.GetColor());
 
 		// 그린 물체를 통계에 포함
 		renderedObjects++;
@@ -373,12 +343,7 @@ void SoftRenderer::DrawTriangle3D(std::vector<Vertex3D>& InVertices, const Linea
 
 					if (IsDepthBufferDrawing())
 					{
-						float grayScale = (newDepth + 1.f) * 0.5f;
-						if (useLinearVisualization)
-						{
-							// 시각화를 위해 선형화된 흑백 값으로 변환
-							grayScale = (invZ - n) / (f - n);
-						}
+						float grayScale = (invZ - n) / (f - n);
 
 						// 뎁스 버퍼 그리기
 						r.DrawPoint(fragment, LinearColor::White * grayScale);

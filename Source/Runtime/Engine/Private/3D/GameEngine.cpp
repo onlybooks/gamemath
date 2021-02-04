@@ -4,6 +4,7 @@ using namespace CK::DDD;
 
 // 메시
 const std::size_t GameEngine::CubeMesh = std::hash<std::string>()("SM_Cube");;
+const std::size_t GameEngine::PlaneMesh = std::hash<std::string>()("SM_Plane");
 
 // 텍스처
 const std::size_t GameEngine::BaseTexture = std::hash<std::string>()("Base");
@@ -81,6 +82,24 @@ bool GameEngine::LoadResources()
 
 	// 메시의 바운딩 볼륨 생성
 	cubeMesh.CalculateBounds();
+
+	// 평면 메시
+	Mesh& planeMesh = CreateMesh(GameEngine::PlaneMesh);
+	auto& pv = planeMesh.GetVertices();
+	auto& pi = planeMesh.GetIndices();
+	pv = {
+		Vector3(-1.f, 0.f, 1.f),
+		Vector3(-1.f, 0.f, -1.f),
+		Vector3(1.f, 0.f, -1.f),
+		Vector3(1.f, 0.f, 1.f),
+	};
+
+	pi = {
+		0, 2, 1,
+		0, 3, 2
+	};
+
+	planeMesh.CalculateBounds();
 
 	// 텍스쳐 로딩
 	Texture& diffuseTexture = CreateTexture(GameEngine::BaseTexture, GameEngine::SteveTexturePath);
