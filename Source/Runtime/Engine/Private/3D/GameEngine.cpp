@@ -79,6 +79,9 @@ bool GameEngine::LoadResources()
 		Vector2(16.f, 64.f) / 64.f, Vector2(24.f, 64.f) / 64.f, Vector2(24.f, 56.f) / 64.f, Vector2(16.f, 56.f) / 64.f
 	};
 
+	// 메시의 바운딩 볼륨 생성
+	cubeMesh.CalculateBounds();
+
 	// 텍스쳐 로딩
 	Texture& diffuseTexture = CreateTexture(GameEngine::BaseTexture, GameEngine::SteveTexturePath);
 	assert(diffuseTexture.IsIntialized());
