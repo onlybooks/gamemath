@@ -131,25 +131,7 @@ void SoftRenderer::Render3D()
 	DrawGizmo3D();
 
 	// 렌더링 로직의 로컬 변수
-	const Matrix4x4 vMatrix = mainCamera.GetViewMatrix();
-	const Matrix4x4 pMatrix = mainCamera.GetPerspectiveMatrix();
 	const Matrix4x4 pvMatrix = mainCamera.GetPerspectiveViewMatrix();
-
-	// 절두체 구축을 위한 투영 행렬의 설정
-	Matrix4x4 ptMatrix = pMatrix.Tranpose();
-
-	// 절두체를 구성하는 평면의 방정식
-	std::array<Plane, 6> frustumPlanes = {
-		Plane(-(ptMatrix[3] - ptMatrix[1])), // +Y
-		Plane(-(ptMatrix[3] + ptMatrix[1])), // -Y
-		Plane(-(ptMatrix[3] - ptMatrix[0])), // +X
-		Plane(-(ptMatrix[3] + ptMatrix[0])), // -X
-		Plane(-(ptMatrix[3] - ptMatrix[2])),  // +Z
-		Plane(-(ptMatrix[3] + ptMatrix[2])), // -Z
-	};
-
-	// 절두체 선언
-	Frustum frustumFromMatrix(frustumPlanes);
 
 	// 절두체 컬링 테스트를 위한 통계 변수
 	size_t totalObjects = g.GetScene().size();
@@ -169,14 +151,24 @@ void SoftRenderer::Render3D()
 		const Mesh& mesh = g.GetMesh(gameObject.GetMeshKey());
 		const TransformComponent& transform = gameObject.GetTransform();
 
+		// 최종 행렬 계산
+		Matrix4x4 finalMatrix = pvMatrix * transform.GetModelingMatrix();
 		LinearColor finalColor = gameObject.GetColor();
 
-		// 바운딩 영역의 크기를 트랜스폼에 맞게 조정
-		Sphere sphereBound = mesh.GetSphereBound();
-		sphereBound.Radius *= transform.GetScale().Max();
-		sphereBound.Center = (vMatrix * Vector4(transform.GetPosition())).ToVector3();
+		// 최종 변환 행렬로부터 평면의 방정식과 절두체 생성
+		Matrix4x4 finalTranposedMatrix = finalMatrix.Tranpose();
+		std::array<Plane, 6> frustumPlanesFromMatrix = {
+			Plane(-(finalTranposedMatrix[3] - finalTranposedMatrix[1])), // up
+			Plane(-(finalTranposedMatrix[3] + finalTranposedMatrix[1])), // bottom
+			Plane(-(finalTranposedMatrix[3] - finalTranposedMatrix[0])), // right
+			Plane(-(finalTranposedMatrix[3] + finalTranposedMatrix[0])), // left 
+			Plane(-(finalTranposedMatrix[3] - finalTranposedMatrix[2])),  // far
+			Plane(-(finalTranposedMatrix[3] + finalTranposedMatrix[2])), // near
+		};
+		Frustum frustumFromMatrix(frustumPlanesFromMatrix);
 
-		// 영역을 사용해 절두체 컬링을 구현
+		// 바운딩 영역을 사용해 절두체 컬링을 구현
+		Sphere sphereBound = mesh.GetSphereBound();
 		auto checkResult = frustumFromMatrix.CheckBound(sphereBound);
 		if (checkResult == BoundCheckResult::Outside)
 		{
@@ -189,9 +181,6 @@ void SoftRenderer::Render3D()
 			intersectedObjects++;
 			finalColor = LinearColor::Red;
 		}
-
-		// 최종 행렬 계산
-		Matrix4x4 finalMatrix = pvMatrix * transform.GetModelingMatrix();
 
 		// 메시 그리기
 		DrawMesh3D(mesh, finalMatrix, finalColor);
