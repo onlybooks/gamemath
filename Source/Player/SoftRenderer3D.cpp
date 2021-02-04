@@ -47,6 +47,7 @@ void SoftRenderer::LoadScene3D()
     goPlayer.SetMesh(GameEngine::CubeMesh);
     goPlayer.GetTransform().SetPosition(Vector3::Zero);
     goPlayer.GetTransform().SetScale(Vector3::One * cubeScale);
+	goPlayer.SetColor(LinearColor::White);
 
     // 고정 시드로 랜덤하게 생성
     std::mt19937 generator(0);
@@ -62,7 +63,8 @@ void SoftRenderer::LoadScene3D()
         newGo.GetTransform().SetPosition(Vector3(distXY(generator), distXY(generator), distZ(generator)));
         newGo.GetTransform().SetScale(Vector3::One * cubeScale);
         newGo.SetMesh(GameEngine::CubeMesh);
-    }
+		newGo.SetColor(LinearColor::White);
+	}
 
     // 카메라 설정
     CameraObject& mainCamera = g.GetMainCamera();
@@ -382,7 +384,7 @@ void SoftRenderer::DrawTriangle3D(std::vector<Vertex3D>& InVertices, const Linea
 					{
 						// 최종 보정보간된 UV 좌표
 						Vector2 targetUV = (InVertices[0].UV * oneMinusST * invZ0 + InVertices[1].UV * s * invZ1 + InVertices[2].UV * t * invZ2) * invZ;
-						r.DrawPoint(fragment, FragmentShader3D(mainTexture.GetSample(targetUV), LinearColor::White));
+						r.DrawPoint(fragment, FragmentShader3D(mainTexture.GetSample(targetUV), InColor));
 					}
 				}
 			}
