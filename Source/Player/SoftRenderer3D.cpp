@@ -68,7 +68,7 @@ void SoftRenderer::Update3D(float InDeltaSeconds)
 	static float minFOV = 15.f;
 	static float maxFOV = 150.f;
 
-	// 입력에 따른 카메라 트랜스폼의 변경
+	// 입력에 따른 카메라 시야각의 변경
 	CameraObject& camera = g.GetMainCamera();
 	float deltaFOV = input.GetAxis(InputAxis::WAxis) * fovSpeed * InDeltaSeconds;
 	camera.SetFOV(Math::Clamp(camera.GetFOV() + deltaFOV, minFOV, maxFOV));
