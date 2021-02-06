@@ -64,7 +64,8 @@ void SoftRenderer::LoadScene3D()
 }
 
 // 실습을 위한 변수
-
+static Quaternion startRotation(Rotator(180.f, 0.f, 0.f));
+static Quaternion endRotation;
 
 // 게임 로직을 담당하는 함수
 void SoftRenderer::Update3D(float InDeltaSeconds)
@@ -77,11 +78,34 @@ void SoftRenderer::Update3D(float InDeltaSeconds)
 	static float fovSpeed = 100.f;
 	static float minFOV = 15.f;
 	static float maxFOV = 150.f;
+	static float duration = 3.f;
+	static float elapsedTime = 0.f;
+	static std::mt19937 generator(0);
+	static std::uniform_real_distribution<float> dir(-1.f, 1.f);
+	static std::uniform_real_distribution<float> angle(0.f, 180.f);
 
 	// 입력에 따른 카메라 시야각의 변경
 	CameraObject& camera = g.GetMainCamera();
 	float deltaFOV = input.GetAxis(InputAxis::WAxis) * fovSpeed * InDeltaSeconds;
 	camera.SetFOV(Math::Clamp(camera.GetFOV() + deltaFOV, minFOV, maxFOV));
+
+	// 시간에 따른 카메라 회전의 보간
+	elapsedTime = Math::Clamp(elapsedTime + InDeltaSeconds, 0.f, duration);
+	if (elapsedTime == duration)
+	{
+		elapsedTime = 0.f;
+		startRotation = endRotation;
+
+		Vector3 randomAxis = Vector3(dir(generator), dir(generator), dir(generator)).GetNormalize();
+		endRotation = Quaternion(randomAxis, angle(generator));
+		camera.GetTransform().SetRotation(startRotation);
+	}
+	else
+	{
+		float t = elapsedTime / duration;
+		Quaternion current = Quaternion::Slerp(startRotation, endRotation, t);
+		camera.GetTransform().SetRotation(current);
+	}
 }
 
 // 애니메이션 로직을 담당하는 함수
@@ -162,6 +186,10 @@ void SoftRenderer::Render3D()
 		// 그린 물체를 통계에 포함
 		renderedObjects++;
 	}
+
+	r.PushStatisticText("Start : " + startRotation.ToString());
+	r.PushStatisticText("End : " + endRotation.ToString());
+	r.PushStatisticText("Current : " + mainCamera.GetTransform().GetRotation().ToString());
 }
 
 // 메시를 그리는 함수
