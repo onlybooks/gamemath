@@ -15,6 +15,7 @@
 
 #include "3D/Resources.h"
 #include "3D/TransformComponent.h"
+#include "3D/Bone.h"
 #include "3D/Mesh.h"
 #include "3D/GameObject.h"
 #include "3D/CameraObject.h"
