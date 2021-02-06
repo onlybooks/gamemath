@@ -4,14 +4,14 @@
 #include <random>
 using namespace CK::DDD;
 
-// 기즈모를 그리는 함수
+// 기즈모 그리기
 void SoftRenderer::DrawGizmo3D()
 {
 	auto& r = GetRenderer();
 	const GameEngine& g = Get3DGameEngine();
 
 	// 뷰 기즈모 그리기
-	std::vector<Vertex3D> viewGizmo = { 
+	std::vector<Vertex3D> viewGizmo = {
 		Vertex3D(Vector4(Vector3::Zero)),
 		Vertex3D(Vector4(Vector3::UnitX * _GizmoUnitLength)),
 		Vertex3D(Vector4(Vector3::UnitY * _GizmoUnitLength)),
@@ -43,11 +43,11 @@ void SoftRenderer::DrawGizmo3D()
 	SetDrawMode(prevShowMode);
 }
 
-// 게임 오브젝트 목록
-static const std::string PlayerGo = "Player";
-static const std::string CameraRigGo = "CameraRig";
+// 게임 오브젝트 이름
+const std::string PlayerGo("Player");
+const std::string CameraTargetGo("CameraTarget");
 
-// 최초 씬 로딩을 담당하는 함수
+// 씬 로딩
 void SoftRenderer::LoadScene3D()
 {
 	GameEngine& g = Get3DGameEngine();
@@ -57,6 +57,7 @@ void SoftRenderer::LoadScene3D()
 
 	GameObject& goPlayer = g.CreateNewGameObject(PlayerGo);
 	goPlayer.SetMesh(GameEngine::CharacterMesh);
+	goPlayer.SetColor(LinearColor::White);
 	goPlayer.GetTransform().SetWorldScale(Vector3::One * playerScale);
 
 	// 캐릭터 본을 표시할 화살표
@@ -68,24 +69,22 @@ void SoftRenderer::LoadScene3D()
 			continue;
 		}
 		GameObject& goBoneArrow = g.CreateNewGameObject(b.second.GetName());
-		goBoneArrow.SetGameObjectType(GameObjectType::Gizmo);
 		goBoneArrow.SetMesh(GameEngine::ArrowMesh);
-		goBoneArrow.SetColor(LinearColor::Red);
 		g.GetBoneObjectPtrs().insert({ goBoneArrow.GetName(),&goBoneArrow });
 	}
 
 	// 카메라 릭
-	GameObject& goCameraRig = g.CreateNewGameObject(CameraRigGo);
-	goCameraRig.GetTransform().SetWorldPosition(Vector3(0.f, 150.f, 0.f));
+	GameObject& goCameraTarget = g.CreateNewGameObject(CameraTargetGo);
+	goCameraTarget.GetTransform().SetWorldPosition(Vector3(0.f, 150.f, 0.f));
+	goCameraTarget.SetParent(goPlayer);
 
 	// 카메라 설정
 	CameraObject& mainCamera = g.GetMainCamera();
 	mainCamera.GetTransform().SetWorldPosition(Vector3(-500.f, 800.f, 1000.f));
-	mainCamera.SetParent(goCameraRig);
-	mainCamera.SetLookAtRotation(goCameraRig);
+	mainCamera.SetLookAtRotation(goCameraTarget);
 }
 
-// 게임 로직과 렌더링 로직이 공유하는 변수
+// 실습을 위한 변수
 
 // 게임 로직을 담당하는 함수
 void SoftRenderer::Update3D(float InDeltaSeconds)
@@ -96,21 +95,26 @@ void SoftRenderer::Update3D(float InDeltaSeconds)
 
 	// 게임 로직의 로컬 변수
 	static float fovSpeed = 100.f;
+	static float minFOV = 15.f;
+	static float maxFOV = 150.f;
 	static float rotateSpeed = 180.f;
 	static float moveSpeed = 500.f;
 
+	// 입력에 따른 카메라 시야각의 변경
+	CameraObject& camera = g.GetMainCamera();
+	float deltaFOV = input.GetAxis(InputAxis::WAxis) * fovSpeed * InDeltaSeconds;
+	camera.SetFOV(Math::Clamp(camera.GetFOV() + deltaFOV, minFOV, maxFOV));
+
 	// 게임 로직에서 사용할 게임 오브젝트 레퍼런스
 	GameObject& goPlayer = g.GetGameObject(PlayerGo);
-	GameObject& goCameraRig = g.GetGameObject(CameraRigGo);
-	CameraObject& camera = g.GetMainCamera();
+	GameObject& goCameraTarget = g.GetGameObject(CameraTargetGo);
 
 	// 입력에 따른 이동
 	goPlayer.GetTransform().AddLocalYawRotation(-input.GetAxis(InputAxis::XAxis) * rotateSpeed * InDeltaSeconds);
 	goPlayer.GetTransform().AddLocalPosition(goPlayer.GetTransform().GetLocalZ() * input.GetAxis(InputAxis::YAxis) * moveSpeed * InDeltaSeconds);
 
-	// 카메라 화각 설정
-	float newFOV = Math::Clamp(camera.GetFOV() + input.GetAxis(InputAxis::ZAxis) * fovSpeed * InDeltaSeconds, 5.f, 179.f);
-	camera.SetFOV(newFOV);
+	// 카메라의 설정
+	camera.SetLookAtRotation(goCameraTarget);
 }
 
 // 애니메이션 로직을 담당하는 함수
@@ -128,11 +132,11 @@ void SoftRenderer::LateUpdate3D(float InDeltaSeconds)
 	elapsedTime += InDeltaSeconds;
 
 	// 애니메이션을 위한 커브 생성 
-	float armLegCurrent = Math::FMod(elapsedTime, armLegLength) * Math::TwoPI / armLegLength;
 	float neckCurrent = Math::FMod(elapsedTime, neckLength) * Math::TwoPI / neckLength;
+	float armLegCurrent = Math::FMod(elapsedTime, armLegLength) * Math::TwoPI / armLegLength;
 
-	float armLegCurve = sinf(armLegCurrent) * armLegDegree;
 	float neckCurve = sinf(neckCurrent) * neckDegree;
+	float armLegCurve = sinf(armLegCurrent) * armLegDegree;
 
 	// 캐릭터 레퍼런스
 	GameObject& goPlayer = g.GetGameObject(PlayerGo);
@@ -172,19 +176,28 @@ void SoftRenderer::Render3D()
 
 	// 렌더링 로직의 로컬 변수
 	const Matrix4x4 pvMatrix = mainCamera.GetPerspectiveViewMatrix();
-	const ScreenPoint viewportSize = mainCamera.GetViewportSize();
+
+	// 절두체 컬링 테스트를 위한 통계 변수
+	size_t totalObjects = g.GetScene().size();
+	size_t culledObjects = 0;
+	size_t intersectedObjects = 0;
+	size_t renderedObjects = 0;
 
 	for (auto it = g.SceneBegin(); it != g.SceneEnd(); ++it)
 	{
 		const GameObject& gameObject = *(*it);
-		const TransformComponent& transform = gameObject.GetTransform();
 		if (!gameObject.HasMesh() || !gameObject.IsVisible())
 		{
 			continue;
 		}
 
-		// 최종 변환 행렬
+		// 렌더링에 필요한 게임 오브젝트의 주요 레퍼런스를 얻기
+		const Mesh& mesh = g.GetMesh(gameObject.GetMeshKey());
+		const TransformComponent& transform = gameObject.GetTransform();
+
+		// 최종 행렬 계산
 		Matrix4x4 finalMatrix = pvMatrix * transform.GetWorldMatrix();
+		LinearColor finalColor = gameObject.GetColor();
 
 		// 최종 변환 행렬로부터 평면의 방정식과 절두체 생성
 		Matrix4x4 finalTranposedMatrix = finalMatrix.Tranpose();
@@ -198,17 +211,18 @@ void SoftRenderer::Render3D()
 		};
 		Frustum frustumFromMatrix(frustumPlanesFromMatrix);
 
-		// 메시 정보 얻어오기
-		const Mesh& mesh = g.GetMesh(gameObject.GetMeshKey());
-
-		// 바운딩 영역은 로컬 정보를 그대로 사용
-		const Box& boxBound = mesh.GetBoxBound();
-
-		// 절두체에서 로컬 바운딩 정보로 판정
+		// 바운딩 영역을 사용해 절두체 컬링을 구현
+		Box boxBound = mesh.GetBoxBound();
 		auto checkResult = frustumFromMatrix.CheckBound(boxBound);
 		if (checkResult == BoundCheckResult::Outside)
 		{
+			culledObjects++;
 			continue;
+		}
+		else if (checkResult == BoundCheckResult::Intersect)
+		{
+			// 겹친 게임 오브젝트를 통계에 포함
+			intersectedObjects++;
 		}
 
 		// 스키닝이고 WireFrame인 경우 본을 그리기
@@ -236,17 +250,19 @@ void SoftRenderer::Render3D()
 				Vector3 boneVector = wt2.GetPosition() - wt1.GetPosition();
 				Transform tboneObject(wt1.GetPosition(), Quaternion(boneVector), Vector3(10.f, 10.f, boneVector.Size()));
 				Matrix4x4 boneMatrix = pvMatrix * tboneObject.GetMatrix();
-				DrawMesh3D(boneMesh, boneMatrix, LinearColor::Red);
+				DrawMesh3D(boneMesh, boneMatrix, _BoneWireframeColor);
 			}
 		}
 
 		// 메시 그리기
-		DrawMesh3D(mesh, finalMatrix, LinearColor::White);
+		DrawMesh3D(mesh, finalMatrix, gameObject.GetColor());
 
-		// 플레이어 위치 정보
+		// 그린 물체를 통계에 포함
+		renderedObjects++;
+
 		if (gameObject == PlayerGo)
 		{
-			r.PushStatisticText("Player:" + gameObject.GetTransform().GetWorldPosition().ToString());
+			r.PushStatisticText("Player : " + gameObject.GetTransform().GetWorldPosition().ToString());
 		}
 	}
 }
@@ -276,8 +292,8 @@ void SoftRenderer::DrawMesh3D(const Mesh& InMesh, const Matrix4x4& InMatrix, con
 				if (InMesh.HasBone(boneName))
 				{
 					const Bone& b = InMesh.GetBone(boneName);
-					const Transform& t = b.GetTransform().GetWorldTransform();  // 월드 공간
-					const Transform& bindPose = b.GetBindPose(); // 월드 공간
+					const Transform& t = b.GetTransform().GetWorldTransform();  // 모델링 공간
+					const Transform& bindPose = b.GetBindPose(); // 모델링 공간
 
 					// BindPose 공간을 중심으로 Bone의 로컬 공간을 계산
 					Transform boneLocal = t.WorldToLocal(bindPose);
@@ -288,10 +304,10 @@ void SoftRenderer::DrawMesh3D(const Mesh& InMesh, const Matrix4x4& InMatrix, con
 					// BindPose 공간에서의 점의 최종 위치
 					Vector3 skinnedLocalPosition = boneLocal.GetMatrix() * localPosition;
 
-					// 월드 공간으로 다시 변경
+					// 모델링 공간으로 다시 변경
 					Vector3 skinnedWorldPosition = bindPose.GetMatrix() * skinnedLocalPosition;
 
-					// 가중치를 곱해서 더해줌
+					// 가중치를 반영한 후 최종 위치에 누적
 					totalPosition += Vector4(skinnedWorldPosition, true) * w.Values[wi];
 				}
 			}
@@ -351,7 +367,13 @@ void SoftRenderer::DrawTriangle3D(std::vector<Vertex3D>& InVertices, const Linea
 {
 	auto& r = GetRenderer();
 	const GameEngine& g = Get3DGameEngine();
+	const CameraObject& mainCamera = g.GetMainCamera();
 
+	// 카메라의 근평면과 원평면 값
+	float n = mainCamera.GetNearZ();
+	float f = mainCamera.GetFarZ();
+
+	// 클립 좌표를 NDC 좌표로 변경
 	for (auto& v : InVertices)
 	{
 		// 무한 원점인 경우, 약간 보정해준다.
@@ -363,10 +385,9 @@ void SoftRenderer::DrawTriangle3D(std::vector<Vertex3D>& InVertices, const Linea
 		v.Position.Z *= invW;
 	}
 
-	// 백페이스 컬링 ( 뒷면이면 그리기 생략 )
+	// 백페이스 컬링
 	Vector3 edge1 = (InVertices[1].Position - InVertices[0].Position).ToVector3();
 	Vector3 edge2 = (InVertices[2].Position - InVertices[0].Position).ToVector3();
-	// 왼손 좌표계를 사용하므로 반대 방향으로 설정
 	Vector3 faceNormal = -edge1.Cross(edge2);
 	Vector3 viewDirection = Vector3::UnitZ;
 	if (faceNormal.Dot(viewDirection) >= 0.f)
@@ -374,16 +395,17 @@ void SoftRenderer::DrawTriangle3D(std::vector<Vertex3D>& InVertices, const Linea
 		return;
 	}
 
+	// NDC 좌표를 화면 좌표로 늘리기
+	for (auto& v : InVertices)
+	{
+		v.Position.X *= _ScreenSize.X * 0.5f;
+		v.Position.Y *= _ScreenSize.Y * 0.5f;
+	}
+
 	if (IsWireframeDrawing())
 	{
-		for (auto& v : InVertices)
-		{
-			v.Position.X *= _ScreenSize.X * 0.5f;
-			v.Position.Y *= _ScreenSize.Y * 0.5f;
-		}
-
 		LinearColor finalColor = _WireframeColor;
-		if (InColor != LinearColor::White)
+		if (InColor == _BoneWireframeColor)
 		{
 			finalColor = InColor;
 		}
@@ -419,12 +441,6 @@ void SoftRenderer::DrawTriangle3D(std::vector<Vertex3D>& InVertices, const Linea
 
 		float invDenominator = 1.f / denominator;
 
-		// 화면상의 점 구하기
-		minPos.X *= _ScreenSize.X * 0.5f;
-		minPos.Y *= _ScreenSize.Y * 0.5f;
-		maxPos.X *= _ScreenSize.X * 0.5f;
-		maxPos.Y *= _ScreenSize.Y * 0.5f;
-
 		ScreenPoint lowerLeftPoint = ScreenPoint::ToScreenCoordinate(_ScreenSize, minPos);
 		ScreenPoint upperRightPoint = ScreenPoint::ToScreenCoordinate(_ScreenSize, maxPos);
 
@@ -434,6 +450,11 @@ void SoftRenderer::DrawTriangle3D(std::vector<Vertex3D>& InVertices, const Linea
 		upperRightPoint.X = Math::Min(_ScreenSize.X, upperRightPoint.X);
 		upperRightPoint.Y = Math::Max(0, upperRightPoint.Y);
 
+		// 각 정점마다 보존된 뷰 공간의 z값
+		float invZ0 = 1.f / InVertices[0].Position.W;
+		float invZ1 = 1.f / InVertices[1].Position.W;
+		float invZ2 = 1.f / InVertices[2].Position.W;
+
 		// 삼각형 영역 내 모든 점을 점검하고 색칠
 		for (int x = lowerLeftPoint.X; x <= upperRightPoint.X; ++x)
 		{
@@ -441,8 +462,6 @@ void SoftRenderer::DrawTriangle3D(std::vector<Vertex3D>& InVertices, const Linea
 			{
 				ScreenPoint fragment = ScreenPoint(x, y);
 				Vector2 pointToTest = fragment.ToCartesianCoordinate(_ScreenSize);
-				pointToTest.X *= (2.f / _ScreenSize.X);
-				pointToTest.Y *= (2.f / _ScreenSize.Y);
 				Vector2 w = pointToTest - InVertices[0].Position.ToVector2();
 				float wdotu = w.Dot(u);
 				float wdotv = w.Dot(v);
@@ -450,14 +469,14 @@ void SoftRenderer::DrawTriangle3D(std::vector<Vertex3D>& InVertices, const Linea
 				float s = (wdotv * udotv - wdotu * vdotv) * invDenominator;
 				float t = (wdotu * udotv - wdotv * udotu) * invDenominator;
 				float oneMinusST = 1.f - s - t;
+
+				// 투영보정에 사용할 공통 분모
+				float z = invZ0 * oneMinusST + invZ1 * s + invZ2 * t;
+				float invZ = 1.f / z;
+
 				if (((s >= 0.f) && (s <= 1.f)) && ((t >= 0.f) && (t <= 1.f)) && ((oneMinusST >= 0.f) && (oneMinusST <= 1.f)))
 				{
-					// 각 점마다 보존된 뷰 공간의 z값
-					float invZ0 = 1.f / InVertices[0].Position.W;
-					float invZ1 = 1.f / InVertices[1].Position.W;
-					float invZ2 = 1.f / InVertices[2].Position.W;
-
-					// 투영 보정보간에 사용할 공통 분모
+					// 투영보정에 사용할 공통 분모
 					float z = invZ0 * oneMinusST + invZ1 * s + invZ2 * t;
 					float invZ = 1.f / z;
 
@@ -477,10 +496,6 @@ void SoftRenderer::DrawTriangle3D(std::vector<Vertex3D>& InVertices, const Linea
 
 					if (IsDepthBufferDrawing())
 					{
-						float n = g.GetMainCamera().GetNearZ();
-						float f = g.GetMainCamera().GetFarZ();
-
-						// 시각화를 위해 선형화된 흑백 값으로 변환
 						float grayScale = (invZ - n) / (f - n);
 
 						// 뎁스 버퍼 그리기
@@ -497,4 +512,3 @@ void SoftRenderer::DrawTriangle3D(std::vector<Vertex3D>& InVertices, const Linea
 		}
 	}
 }
-

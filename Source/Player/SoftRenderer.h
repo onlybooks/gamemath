@@ -125,6 +125,9 @@ private:
 	// 와이어프레임 색상
 	LinearColor _WireframeColor = LinearColor::DimGray;
 
+	// 본을 그릴 색상
+	LinearColor _BoneWireframeColor = LinearColor::Red;
+
 	// 성능 측정
 	long long _StartTimeStamp = 0;
 	long long _FrameTimeStamp = 0;

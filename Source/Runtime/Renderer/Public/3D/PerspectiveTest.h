@@ -12,102 +12,87 @@ struct PerspectiveTest
 	std::function<Vertex3D(const Vertex3D& InStartVertex, const Vertex3D& InEndVertex)> GetEdgeVertexFunc;
 	std::array<bool, 3> TestResult;
 
-	void ClipTriangles(std::vector<Vertex3D>& InTriangleVertices)
+	void ClipTriangles(std::vector<Vertex3D>& InOutVertices)
 	{
-		size_t nTriangles = InTriangleVertices.size() / 3;
-		for (size_t ti = 0; ti < nTriangles; ++ti)
+		size_t triangles = InOutVertices.size() / 3;
+		for (size_t ti = 0; ti < triangles; ++ti)
 		{
-			size_t si = ti * 3;
-			size_t testNotPassedCount = 0;
+			size_t startIndex = ti * 3;
+			size_t nonPassCount = 0;
 
-			std::vector<Vertex3D> sub(InTriangleVertices.begin() + si, InTriangleVertices.begin() + si + 3);
-			// 테스트에 실패한 점 정보 얻기
 			for (size_t ix = 0; ix < 3; ++ix)
 			{
-				bool testResult = ClippingTestFunc(sub[ix]);
-				TestResult[ix] = testResult;
-				if (testResult) testNotPassedCount++;
+				TestResult[ix] = ClippingTestFunc(InOutVertices[startIndex + ix]);
+				if (TestResult[ix])
+				{
+					nonPassCount++;
+				}
 			}
 
-			GetNewVertices(sub, testNotPassedCount);
-
-			if (testNotPassedCount == 0)
+			if (nonPassCount == 0)
 			{
 				continue;
 			}
-			else if (testNotPassedCount == 1)  // 삼각형 추가
+			else if (nonPassCount == 1)
 			{
-				InTriangleVertices[si] = sub[0];
-				InTriangleVertices[si + 1] = sub[1];
-				InTriangleVertices[si + 2] = sub[2];
-				InTriangleVertices.push_back(sub[3]);
-				InTriangleVertices.push_back(sub[4]);
-				InTriangleVertices.push_back(sub[5]);
+				DivideIntoTwoTriangles(InOutVertices, startIndex, nonPassCount);
 			}
-			else if (testNotPassedCount == 2) // 삼각형 정보 변경
+			else if (nonPassCount == 2)
 			{
-				InTriangleVertices[si] = sub[0];
-				InTriangleVertices[si + 1] = sub[1];
-				InTriangleVertices[si + 2] = sub[2];
+				ClipTriangle(InOutVertices, startIndex, nonPassCount);
 			}
-			else // 삼각형을 목록에서 제거
+			else
 			{
-				InTriangleVertices.erase(InTriangleVertices.begin() + si, InTriangleVertices.begin() + si + 3);
-				nTriangles--;
+				InOutVertices.erase(InOutVertices.begin() + startIndex, InOutVertices.begin() + startIndex + 3);
+				triangles--;
 				ti--;
 			}
 		}
 	}
 
-	// 패스하면 false, 사용할거면 true
-	bool GetNewVertices(std::vector<Vertex3D>& InVertices, size_t NonPassCount)
+private:
+	// 점 하나가 평면의 바깥에 있어 삼각형이 2개로 쪼개지는 경우
+	void DivideIntoTwoTriangles(std::vector<Vertex3D>& InOutVertices, size_t StartIndex, size_t NonPassCount)
 	{
-		if (NonPassCount == 0) // 그대로 통과
+		// 평면의 바깥에 위치한 점 찾기
+		BYTE index = 0; 
+		if (!TestResult[0])
 		{
-			return true;
+			index = TestResult[1] ? 1 : 2;
 		}
-		else if (NonPassCount == 1)
-		{
-			// Edge를 만든 후 클리핑 진행. 점이 두 개가 추가되고 삼각형이 2개로 쪼개짐
-			BYTE index = 0; // 테스트에 걸린 점의 인덱스
-			if (!TestResult[0])
-			{
-				index = TestResult[1] ? 1 : 2;
-			}
-			Vertex3D v1 = InVertices[(index + 1) % 3];
-			Vertex3D v2 = InVertices[(index + 2) % 3];
-			Vertex3D clipped1 = GetEdgeVertexFunc(InVertices[index], v1);
-			Vertex3D clipped2 = GetEdgeVertexFunc(InVertices[index], v2);
-			InVertices[0] = clipped1;
-			InVertices[1] = v1;
-			InVertices[2] = v2;
-			InVertices.push_back(clipped1);
-			InVertices.push_back(v2);
-			InVertices.push_back(clipped2);
-			return true;
-		}
-		else if (NonPassCount == 2)
-		{
-			// Edge를 만든 후 클리핑 진행. 점이 두 개가 변경되고 삼각형은 그대로.
-			BYTE index = 0;  // 테스트에 걸리지 않은 점의 인덱스
-			if (TestResult[0])
-			{
-				index = !TestResult[1] ? 1 : 2;
-			}
 
-			Vertex3D v1 = InVertices[(index + 1) % 3];
-			Vertex3D v2 = InVertices[(index + 2) % 3];
-			Vertex3D clipped1 = GetEdgeVertexFunc(InVertices[index], v1);
-			Vertex3D clipped2 = GetEdgeVertexFunc(InVertices[index], v2);
-			InVertices[0] = InVertices[index];
-			InVertices[1] = clipped1;
-			InVertices[2] = clipped2;
-			return true;
-		}
-		else
+		size_t v1Index = StartIndex + (index + 1) % 3;
+		size_t v2Index = StartIndex + (index + 2) % 3;
+		Vertex3D v1 = InOutVertices[v1Index];
+		Vertex3D v2 = InOutVertices[v2Index];
+		Vertex3D clipped1 = GetEdgeVertexFunc(InOutVertices[StartIndex + index], v1);
+		Vertex3D clipped2 = GetEdgeVertexFunc(InOutVertices[StartIndex + index], v2);
+		InOutVertices[StartIndex] = clipped1;
+		InOutVertices[StartIndex + 1] = v1;
+		InOutVertices[StartIndex + 2] = v2;
+		InOutVertices.push_back(clipped1);
+		InOutVertices.push_back(v2);
+		InOutVertices.push_back(clipped2);
+	}
+
+	// 점 두 개가 평면의 바깥에 있어 삼각형의 두 점이 변하는 경우
+	void ClipTriangle(std::vector<Vertex3D>& InOutVertices, size_t StartIndex, size_t NonPassCount)
+	{
+		// 평면의 안쪽에 위치한 점 찾기
+		BYTE index = 0;
+		if (TestResult[0])
 		{
-			return false;
+			index = !TestResult[1] ? 1 : 2;
 		}
+
+		size_t v1Index = StartIndex + (index + 1) % 3;
+		size_t v2Index = StartIndex + (index + 2) % 3;
+		Vertex3D v1 = InOutVertices[v1Index];
+		Vertex3D v2 = InOutVertices[v2Index];
+		Vertex3D clipped1 = GetEdgeVertexFunc(InOutVertices[StartIndex + index], v1);
+		Vertex3D clipped2 = GetEdgeVertexFunc(InOutVertices[StartIndex + index], v2);
+		InOutVertices[v1Index] = clipped1;
+		InOutVertices[v2Index] = clipped2;
 	}
 };
 

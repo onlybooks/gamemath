@@ -26,7 +26,7 @@ FORCEINLINE constexpr bool Sphere::IsInside(const Vector3& InVector) const
 FORCEINLINE constexpr bool Sphere::Intersect(const Sphere& InCircle) const
 {
 	float radiusSum = Radius + InCircle.Radius;
-	return (Center - InCircle.Center).SizeSquared() < (radiusSum * radiusSum);
+	return (Center - InCircle.Center).SizeSquared() <= (radiusSum * radiusSum);
 }
 
 }

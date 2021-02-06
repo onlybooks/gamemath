@@ -77,7 +77,6 @@ bool GameEngine::LoadResources()
 	auto& i = characterMesh.GetIndices();
 	auto& uv = characterMesh.GetUVs();
 
-	// 6개의 파트로 구성되어 있음.
 	static constexpr std::array<Vector3, totalCharacterParts> cubeMeshSize = {
 		headSize, bodySize, armLegSize, armLegSize, armLegSize, armLegSize
 	};
@@ -222,7 +221,7 @@ bool GameEngine::LoadResources()
 
 	characterMesh.CalculateBounds();
 
-	// 화살표 메시 (기즈모 용)
+	// 화살표 메시 (본의 표시 용도)
 	Mesh& arrow = CreateMesh(GameEngine::ArrowMesh);
 	arrow.GetVertices().resize(arrowPositions.size());
 	arrow.GetIndices().resize(arrowIndice.size());

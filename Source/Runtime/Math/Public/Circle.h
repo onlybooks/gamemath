@@ -26,7 +26,7 @@ FORCEINLINE constexpr bool Circle::IsInside(const Vector2& InVector) const
 FORCEINLINE constexpr bool Circle::Intersect(const Circle& InCircle) const
 {
 	float twoRadiusSum = Radius + InCircle.Radius;
-	return (Center - InCircle.Center).SizeSquared() < (twoRadiusSum * twoRadiusSum);
+	return (Center - InCircle.Center).SizeSquared() <= (twoRadiusSum * twoRadiusSum);
 }
 
 }
