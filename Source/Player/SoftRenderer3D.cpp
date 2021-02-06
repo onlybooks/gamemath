@@ -89,11 +89,30 @@ void SoftRenderer::Update3D(float InDeltaSeconds)
 	static float fovSpeed = 100.f;
 	static float minFOV = 15.f;
 	static float maxFOV = 150.f;
+	static float moveSpeed = 500.f;
+	static float rotateSpeedSun = 40.f;
+	static float rotateSpeedEarth = 120.f;
+	static float rotateSpeedMoon = 48.f;
 
 	// 입력에 따른 카메라 시야각의 변경
 	CameraObject& camera = g.GetMainCamera();
 	float deltaFOV = input.GetAxis(InputAxis::WAxis) * fovSpeed * InDeltaSeconds;
 	camera.SetFOV(Math::Clamp(camera.GetFOV() + deltaFOV, minFOV, maxFOV));
+
+	// 게임 오브젝트와 카메라 오브젝트
+	GameObject& goSun = g.GetGameObject(SunGo);
+	GameObject& goEarth = g.GetGameObject(EarthGo);
+	GameObject& goMoon = g.GetGameObject(MoonGo);
+
+	// 각 행성에 회전 부여
+	goSun.GetTransform().AddLocalYawRotation(rotateSpeedSun * InDeltaSeconds);
+	goEarth.GetTransform().AddLocalYawRotation(rotateSpeedEarth * InDeltaSeconds);
+	goMoon.GetTransform().AddLocalYawRotation(rotateSpeedMoon * InDeltaSeconds);
+
+	// 카메라를 움직이되 카메라가 항상 태양을 바라보도록 설정
+	Vector3 inputVector = Vector3(input.GetAxis(InputAxis::XAxis), input.GetAxis(InputAxis::YAxis), input.GetAxis(InputAxis::ZAxis)).GetNormalize();
+	camera.GetTransform().AddWorldPosition(inputVector * moveSpeed * InDeltaSeconds);
+	camera.SetLookAtRotation(goSun);
 }
 
 // 애니메이션 로직을 담당하는 함수
@@ -173,6 +192,8 @@ void SoftRenderer::Render3D()
 
 		// 그린 물체를 통계에 포함
 		renderedObjects++;
+
+		r.PushStatisticText(gameObject.GetName() + std::string(" Rot : ") + transform.GetLocalRotation().ToString());
 	}
 }
 
