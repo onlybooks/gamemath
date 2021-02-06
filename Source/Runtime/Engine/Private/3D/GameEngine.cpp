@@ -3,7 +3,7 @@
 using namespace CK::DDD;
 
 // 메시
-const std::size_t GameEngine::CubeMesh = std::hash<std::string>()("SM_Cube");;
+const std::size_t GameEngine::CubeMesh = std::hash<std::string>()("SM_Cube");
 const std::size_t GameEngine::PlaneMesh = std::hash<std::string>()("SM_Plane");
 
 // 텍스처
@@ -59,12 +59,12 @@ bool GameEngine::LoadResources()
 	Mesh& cubeMesh = CreateMesh(GameEngine::CubeMesh);
 	auto& v = cubeMesh.GetVertices();
 	auto& i = cubeMesh.GetIndices();
-	auto& uv = cubeMesh.GetUVs();
 
 	static const float halfSize = 0.5f;
 	std::transform(cubeMeshPositions.begin(), cubeMeshPositions.end(), std::back_inserter(v), [&](auto& p) { return p * halfSize; });
 	std::transform(cubeMeshIndice.begin(), cubeMeshIndice.end(), std::back_inserter(i), [&](auto& p) { return p; });
 
+	auto& uv = cubeMesh.GetUVs();
 	uv = {
 		// Right
 		Vector2(0.f, 48.f) / 64.f, Vector2(8.f, 48.f) / 64.f, Vector2(8.f, 56.f) / 64.f, Vector2(0.f, 56.f) / 64.f,

@@ -36,7 +36,6 @@ struct PerspectiveTest
 			else if (nonPassCount == 1)
 			{
 				DivideIntoTwoTriangles(InOutVertices, startIndex, nonPassCount);
-				triangles++;
 			}
 			else if (nonPassCount == 2)
 			{

@@ -32,29 +32,39 @@ void SoftRenderer::DrawGizmo3D()
 }
 
 // 게임 오브젝트 목록
-static const std::string PlaneGo("Plane");
 
 // 최초 씬 로딩을 담당하는 함수
 void SoftRenderer::LoadScene3D()
 {
 	GameEngine& g = Get3DGameEngine();
 
-	// 평면의 설정
-	static float planeScale = 1000.f;
-	GameObject& goPlane = g.CreateNewGameObject(PlaneGo);
-	goPlane.SetMesh(GameEngine::PlaneMesh);
-	goPlane.GetTransform().SetScale(Vector3::One * planeScale);
-	goPlane.GetTransform().SetPosition(Vector3(0.f, 0.f, 0.f));
-	goPlane.SetColor(LinearColor::DimGray);
+	// 정육면체의 크기
+	constexpr float cubeScale = 100.f;
+
+	// 고정 시드로 랜덤하게 생성
+	std::mt19937 generator(0);
+	std::uniform_real_distribution<float> distXYZ(-3000.f, 3000.f);
+
+	// 500개의 배경 게임 오브젝트 생성
+	for (int i = 0; i < 500; ++i)
+	{
+		char name[64];
+		std::snprintf(name, sizeof(name), "GameObject%d", i);
+		GameObject& newGo = g.CreateNewGameObject(name);
+		newGo.GetTransform().SetPosition(Vector3(distXYZ(generator), distXYZ(generator), distXYZ(generator)));
+		newGo.GetTransform().SetScale(Vector3::One * cubeScale);
+		newGo.SetMesh(GameEngine::CubeMesh);
+		newGo.SetColor(LinearColor::White);
+	}
 
 	// 카메라 설정
 	CameraObject& mainCamera = g.GetMainCamera();
-	mainCamera.GetTransform().SetPosition(Vector3(0.f, 400.f, 400.f));
-	mainCamera.GetTransform().SetRotation(Rotator(180.f, 0.f, 20.f));
+	mainCamera.GetTransform().SetPosition(Vector3(0.f, 0.f, 0.f));
+	mainCamera.GetTransform().SetRotation(Rotator(180.f, 0.f, 0.f));
 }
 
-// 실습 설정을 위한 변수
-bool useHomogeneousClipping = true;
+// 실습을 위한 변수
+
 
 // 게임 로직을 담당하는 함수
 void SoftRenderer::Update3D(float InDeltaSeconds)
@@ -68,16 +78,10 @@ void SoftRenderer::Update3D(float InDeltaSeconds)
 	static float minFOV = 15.f;
 	static float maxFOV = 150.f;
 
-	// 입력에 따른 카메라 트랜스폼의 변경
+	// 입력에 따른 카메라 시야각의 변경
 	CameraObject& camera = g.GetMainCamera();
 	float deltaFOV = input.GetAxis(InputAxis::WAxis) * fovSpeed * InDeltaSeconds;
 	camera.SetFOV(Math::Clamp(camera.GetFOV() + deltaFOV, minFOV, maxFOV));
-
-	// 실습 환경의 설정
-	if (input.IsReleased(InputButton::Space))
-	{
-		useHomogeneousClipping = !useHomogeneousClipping;
-	}
 }
 
 // 애니메이션 로직을 담당하는 함수
@@ -158,11 +162,6 @@ void SoftRenderer::Render3D()
 		// 그린 물체를 통계에 포함
 		renderedObjects++;
 	}
-
-	r.PushStatisticText("Total GameObjects : " + std::to_string(totalObjects));
-	r.PushStatisticText("Culled GameObjects : " + std::to_string(culledObjects));
-	r.PushStatisticText("Intersected GameObjects : " + std::to_string(intersectedObjects));
-	r.PushStatisticText("Rendered GameObjects : " + std::to_string(renderedObjects));
 }
 
 // 메시를 그리는 함수
@@ -199,24 +198,21 @@ void SoftRenderer::DrawMesh3D(const Mesh& InMesh, const Matrix4x4& InMatrix, con
 		int bi0 = ti * 3, bi1 = ti * 3 + 1, bi2 = ti * 3 + 2;
 		std::vector<Vertex3D> tvs = { vertices[indice[bi0]] , vertices[indice[bi1]] , vertices[indice[bi2]] };
 
-		if (useHomogeneousClipping)
-		{
-			// 동차좌표계에서 클리핑을 위한 설정
-			std::vector<PerspectiveTest> testPlanes = {
-				{ TestFuncW0, EdgeFuncW0 },
-				{ TestFuncNY, EdgeFuncNY },
-				{ TestFuncPY, EdgeFuncPY },
-				{ TestFuncNX, EdgeFuncNX },
-				{ TestFuncPX, EdgeFuncPX },
-				{ TestFuncFar, EdgeFuncFar },
-				{ TestFuncNear, EdgeFuncNear }
-			};
+		// 동차좌표계에서 클리핑을 위한 설정
+		std::vector<PerspectiveTest> testPlanes = {
+			{ TestFuncW0, EdgeFuncW0 },
+			{ TestFuncNY, EdgeFuncNY },
+			{ TestFuncPY, EdgeFuncPY },
+			{ TestFuncNX, EdgeFuncNX },
+			{ TestFuncPX, EdgeFuncPX },
+			{ TestFuncFar, EdgeFuncFar },
+			{ TestFuncNear, EdgeFuncNear }
+		};
 
-			// 동차좌표계에서 클리핑 진행
-			for (auto& p : testPlanes)
-			{
-				p.ClipTriangles(tvs);
-			}
+		// 동차좌표계에서 클리핑 진행
+		for (auto& p : testPlanes)
+		{
+			p.ClipTriangles(tvs);
 		}
 
 		size_t triangles = tvs.size() / 3;
