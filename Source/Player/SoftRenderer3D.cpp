@@ -40,7 +40,7 @@ void SoftRenderer::LoadScene3D()
 	GameEngine& g = Get3DGameEngine();
 
 	// 플레이어
-	constexpr float quadScale = 200.f;
+	constexpr float quadScale = 150.f;
 
 	// 플레이어 설정
 	GameObject& goPlayer = g.CreateNewGameObject(PlayerGo);
