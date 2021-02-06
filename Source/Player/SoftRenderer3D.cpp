@@ -32,32 +32,51 @@ void SoftRenderer::DrawGizmo3D()
 }
 
 // 게임 오브젝트 이름
-static const std::string PlayerGo("Player");
+const std::string SunGo("Sun");
+const std::string EarthGo("Earth");
+const std::string MoonGo("Moon");
 
 // 씬 로딩
 void SoftRenderer::LoadScene3D()
 {
 	GameEngine& g = Get3DGameEngine();
 
-	// 플레이어
-	constexpr float quadScale = 150.f;
+	static const float sunScale = 100.f;
+	static const float earthScale = 40.f;
+	static const float moonScale = 20.f;
+	static const Vector3 earthOffset(5.f, 0.0f, 0.f);
+	static const Vector3 moonOffset(3.f, 0.0f, 0.f);
 
-	// 플레이어 설정
-	GameObject& goPlayer = g.CreateNewGameObject(PlayerGo);
-	goPlayer.SetMesh(GameEngine::QuadMesh);
-	goPlayer.GetTransform().SetPosition(Vector3::Zero);
-	goPlayer.GetTransform().SetScale(Vector3::One * quadScale);
-	goPlayer.SetColor(LinearColor::White);
+	// 태양
+	GameObject& goSun = g.CreateNewGameObject(SunGo);
+	goSun.SetMesh(GameEngine::CubeMesh);
+	goSun.SetColor(LinearColor::White);
+	goSun.GetTransform().SetWorldScale(Vector3::One * sunScale);
+
+	// 지구
+	GameObject& goEarth = g.CreateNewGameObject(EarthGo);
+	goEarth.SetMesh(GameEngine::CubeMesh);
+	goEarth.GetTransform().SetWorldScale(Vector3::One * earthScale);
+	goEarth.SetColor(LinearColor::White);
+	goEarth.SetParent(goSun);
+	goEarth.GetTransform().SetLocalPosition(earthOffset);
+
+	// 달
+	GameObject& goMoon = g.CreateNewGameObject(MoonGo);
+	goMoon.SetMesh(GameEngine::CubeMesh);
+	goMoon.GetTransform().SetWorldPosition(moonOffset);
+	goMoon.GetTransform().SetWorldScale(Vector3::One * moonScale);
+	goMoon.SetColor(LinearColor::White);
+	goMoon.SetParent(goEarth);
+	goMoon.GetTransform().SetLocalPosition(moonOffset);
 
 	// 카메라 설정
 	CameraObject& mainCamera = g.GetMainCamera();
-	mainCamera.GetTransform().SetPosition(Vector3(0.f, 0.f, 400.f));
-	mainCamera.GetTransform().SetRotation(Rotator(180.f, 0.f, 0.f));
+	mainCamera.GetTransform().SetWorldPosition(Vector3(0.f, 800.f, 1000.f));
+	mainCamera.SetLookAtRotation(goSun);
 }
 
 // 실습을 위한 변수
-Vector3 leftBonePosition;
-Vector3 rightBonePosition;
 
 // 게임 로직을 담당하는 함수
 void SoftRenderer::Update3D(float InDeltaSeconds)
@@ -84,38 +103,7 @@ void SoftRenderer::LateUpdate3D(float InDeltaSeconds)
 	GameEngine& g = Get3DGameEngine();
 
 	// 애니메이션 로직의 로컬 변수
-	static float duration = 3.f;
-	static float elapsedTime = 0.f;
 
-	// 애니메이션을 위한 커브 생성 ( 0~1 SineWave )
-	elapsedTime = Math::Clamp(elapsedTime + InDeltaSeconds, 0.f, duration);
-	if (elapsedTime == duration)
-	{
-		elapsedTime = 0.f;
-	}
-	float sinParam = elapsedTime * Math::TwoPI / duration;
-	float sinWave = (sinf(sinParam) + 1.f) * 0.5f;
-
-	GameObject& goPlayer = g.GetGameObject(PlayerGo);
-	Mesh& m = g.GetMesh(goPlayer.GetMeshKey());
-	if (!m.IsSkinnedMesh())
-	{
-		return;
-	}
-
-	const std::string leftBoneName("left");
-	const std::string rightBoneName("right");
-	Transform& leftBoneTransform = m.GetBone(leftBoneName).GetTransform();
-	Transform& rightBoneTransform = m.GetBone(rightBoneName).GetTransform();
-
-	Vector3 deltaLeftPosition = Vector3::UnitX * -sinWave;
-	Vector3 deltaRightPosition = Vector3::UnitX * sinWave;
-
-	leftBonePosition = m.GetBindPose(leftBoneName).GetPosition() + deltaLeftPosition;
-	rightBonePosition = m.GetBindPose(rightBoneName).GetPosition() + deltaRightPosition;
-
-	leftBoneTransform.SetPosition(leftBonePosition);
-	rightBoneTransform.SetPosition(rightBonePosition);
 }
 
 // 렌더링 로직을 담당하는 함수
@@ -151,7 +139,7 @@ void SoftRenderer::Render3D()
 		const TransformComponent& transform = gameObject.GetTransform();
 
 		// 최종 행렬 계산
-		Matrix4x4 finalMatrix = pvMatrix * transform.GetModelingMatrix();
+		Matrix4x4 finalMatrix = pvMatrix * transform.GetWorldMatrix();
 		LinearColor finalColor = gameObject.GetColor();
 
 		// 최종 변환 행렬로부터 평면의 방정식과 절두체 생성
@@ -186,9 +174,6 @@ void SoftRenderer::Render3D()
 		// 그린 물체를 통계에 포함
 		renderedObjects++;
 	}
-
-	r.PushStatisticText("Left Bone : " + leftBonePosition.ToString());
-	r.PushStatisticText("Right Bone : " + rightBonePosition.ToString());
 }
 
 // 메시를 그리는 함수

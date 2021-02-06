@@ -50,7 +50,7 @@ private:
 
 public: // 주요 키 값
 	// 메시
-	static const std::size_t QuadMesh;
+	static const std::size_t CubeMesh;
 
 	// 텍스처
 	static const std::size_t BaseTexture;

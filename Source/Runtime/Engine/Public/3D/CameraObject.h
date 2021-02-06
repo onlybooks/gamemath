@@ -15,6 +15,7 @@ public:
 	// 트랜스폼
 	TransformComponent& GetTransform() { return _Transform; }
 	const TransformComponent& GetTransform() const { return _Transform; }
+	void SetParent(GameObject& InGameObject) { _Transform.SetParent(InGameObject.GetTransform()); }
 
 	// 카메라 값을 가져오는 함수
 	float GetFOV() const { return _FOV; }
@@ -58,7 +59,7 @@ FORCEINLINE Matrix4x4 CameraObject::GetViewMatrix() const
 {
 	Vector3 viewX, viewY, viewZ;
 	GetViewAxes(viewX, viewY, viewZ);
-	Vector3 pos = _Transform.GetPosition();
+	Vector3 pos = _Transform.GetWorldPosition();
 
 	return Matrix4x4(
 		Vector4(Vector3(viewX.X, viewY.X, viewZ.X), false),
@@ -103,7 +104,7 @@ FORCEINLINE Matrix4x4 CameraObject::GetPerspectiveViewMatrix() const
 	// 뷰 행렬 관련 요소
 	Vector3 viewX, viewY, viewZ;
 	GetViewAxes(viewX, viewY, viewZ);
-	Vector3 pos = _Transform.GetPosition();
+	Vector3 pos = _Transform.GetWorldPosition();
 	float zPos = viewZ.Dot(pos);
 
 	// 투영 행렬 관련 요소

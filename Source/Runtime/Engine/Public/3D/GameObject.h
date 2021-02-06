@@ -23,6 +23,7 @@ public:
 	// 트랜스폼
 	TransformComponent& GetTransform() { return _Transform; }
 	const TransformComponent& GetTransform() const { return _Transform; }
+	void SetParent(GameObject& InGameObject) { _Transform.SetParent(InGameObject.GetTransform()); }
 
 	// 메시
 	void SetMesh(const std::size_t& InMeshKey) { _MeshKey = InMeshKey; }
