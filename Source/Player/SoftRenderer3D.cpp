@@ -4,7 +4,7 @@
 #include <random>
 using namespace CK::DDD;
 
-// 기즈모를 그리는 함수
+// 기즈모 그리기
 void SoftRenderer::DrawGizmo3D()
 {
 	auto& r = GetRenderer();
@@ -19,6 +19,7 @@ void SoftRenderer::DrawGizmo3D()
 	};
 
 	Matrix4x4 viewMatRotationOnly = g.GetMainCamera().GetViewMatrixRotationOnly();
+	Matrix4x4 pvMatrix = g.GetMainCamera().GetPerspectiveViewMatrix();
 	VertexShader3D(viewGizmo, viewMatRotationOnly);
 
 	// 축 그리기
@@ -29,51 +30,58 @@ void SoftRenderer::DrawGizmo3D()
 	r.DrawLine(v0, v1, LinearColor::Red);
 	r.DrawLine(v0, v2, LinearColor::Green);
 	r.DrawLine(v0, v3, LinearColor::Blue);
+
+	// 바닥 기즈모
+	DrawMode prevShowMode = GetDrawMode();
+	SetDrawMode(DrawMode::Wireframe);
+	{
+		static float planeScale = 100.f;
+		const Mesh& planeMesh = g.GetMesh(GameEngine::PlaneMesh);
+		Transform pt(Vector3::Zero, Quaternion::Identity, Vector3::One * planeScale);
+		DrawMesh3D(planeMesh, pvMatrix * pt.GetMatrix(), _WireframeColor);
+	}
+	SetDrawMode(prevShowMode);
 }
 
 // 게임 오브젝트 이름
-const std::string SunGo("Sun");
-const std::string EarthGo("Earth");
-const std::string MoonGo("Moon");
+const std::string PlayerGo("Player");
+const std::string CameraTargetGo("CameraTarget");
 
 // 씬 로딩
 void SoftRenderer::LoadScene3D()
 {
 	GameEngine& g = Get3DGameEngine();
 
-	static const float sunScale = 100.f;
-	static const float earthScale = 40.f;
-	static const float moonScale = 20.f;
-	static const Vector3 earthOffset(5.f, 0.0f, 0.f);
-	static const Vector3 moonOffset(3.f, 0.0f, 0.f);
+	// 플레이어
+	constexpr float playerScale = 100.f;
 
-	// 태양
-	GameObject& goSun = g.CreateNewGameObject(SunGo);
-	goSun.SetMesh(GameEngine::CubeMesh);
-	goSun.SetColor(LinearColor::White);
-	goSun.GetTransform().SetWorldScale(Vector3::One * sunScale);
+	GameObject& goPlayer = g.CreateNewGameObject(PlayerGo);
+	goPlayer.SetMesh(GameEngine::CharacterMesh);
+	goPlayer.SetColor(LinearColor::White);
+	goPlayer.GetTransform().SetWorldScale(Vector3::One * playerScale);
 
-	// 지구
-	GameObject& goEarth = g.CreateNewGameObject(EarthGo);
-	goEarth.SetMesh(GameEngine::CubeMesh);
-	goEarth.GetTransform().SetWorldScale(Vector3::One * earthScale);
-	goEarth.SetColor(LinearColor::White);
-	goEarth.SetParent(goSun);
-	goEarth.GetTransform().SetLocalPosition(earthOffset);
+	// 캐릭터 본을 표시할 화살표
+	Mesh& cm = g.GetMesh(goPlayer.GetMeshKey());
+	for (const auto& b : cm.GetBones())
+	{
+		if (!b.second.HasParent())
+		{
+			continue;
+		}
+		GameObject& goBoneArrow = g.CreateNewGameObject(b.second.GetName());
+		goBoneArrow.SetMesh(GameEngine::ArrowMesh);
+		g.GetBoneObjectPtrs().insert({ goBoneArrow.GetName(),&goBoneArrow });
+	}
 
-	// 달
-	GameObject& goMoon = g.CreateNewGameObject(MoonGo);
-	goMoon.SetMesh(GameEngine::CubeMesh);
-	goMoon.GetTransform().SetWorldPosition(moonOffset);
-	goMoon.GetTransform().SetWorldScale(Vector3::One * moonScale);
-	goMoon.SetColor(LinearColor::White);
-	goMoon.SetParent(goEarth);
-	goMoon.GetTransform().SetLocalPosition(moonOffset);
+	// 카메라 릭
+	GameObject& goCameraTarget = g.CreateNewGameObject(CameraTargetGo);
+	goCameraTarget.GetTransform().SetWorldPosition(Vector3(0.f, 150.f, 0.f));
+	goCameraTarget.SetParent(goPlayer);
 
 	// 카메라 설정
 	CameraObject& mainCamera = g.GetMainCamera();
-	mainCamera.GetTransform().SetWorldPosition(Vector3(0.f, 800.f, 1000.f));
-	mainCamera.SetLookAtRotation(goSun);
+	mainCamera.GetTransform().SetWorldPosition(Vector3(-500.f, 800.f, 1000.f));
+	mainCamera.SetLookAtRotation(goCameraTarget);
 }
 
 // 실습을 위한 변수
@@ -89,30 +97,12 @@ void SoftRenderer::Update3D(float InDeltaSeconds)
 	static float fovSpeed = 100.f;
 	static float minFOV = 15.f;
 	static float maxFOV = 150.f;
-	static float moveSpeed = 500.f;
-	static float rotateSpeedSun = 40.f;
-	static float rotateSpeedEarth = 120.f;
-	static float rotateSpeedMoon = 48.f;
 
 	// 입력에 따른 카메라 시야각의 변경
 	CameraObject& camera = g.GetMainCamera();
 	float deltaFOV = input.GetAxis(InputAxis::WAxis) * fovSpeed * InDeltaSeconds;
 	camera.SetFOV(Math::Clamp(camera.GetFOV() + deltaFOV, minFOV, maxFOV));
 
-	// 게임 오브젝트와 카메라 오브젝트
-	GameObject& goSun = g.GetGameObject(SunGo);
-	GameObject& goEarth = g.GetGameObject(EarthGo);
-	GameObject& goMoon = g.GetGameObject(MoonGo);
-
-	// 각 행성에 회전 부여
-	goSun.GetTransform().AddLocalYawRotation(rotateSpeedSun * InDeltaSeconds);
-	goEarth.GetTransform().AddLocalYawRotation(rotateSpeedEarth * InDeltaSeconds);
-	goMoon.GetTransform().AddLocalYawRotation(rotateSpeedMoon * InDeltaSeconds);
-
-	// 카메라를 움직이되 카메라가 항상 태양을 바라보도록 설정
-	Vector3 inputVector = Vector3(input.GetAxis(InputAxis::XAxis), input.GetAxis(InputAxis::YAxis), input.GetAxis(InputAxis::ZAxis)).GetNormalize();
-	camera.GetTransform().AddWorldPosition(inputVector * moveSpeed * InDeltaSeconds);
-	camera.SetLookAtRotation(goSun);
 }
 
 // 애니메이션 로직을 담당하는 함수
@@ -193,7 +183,10 @@ void SoftRenderer::Render3D()
 		// 그린 물체를 통계에 포함
 		renderedObjects++;
 
-		r.PushStatisticText(gameObject.GetName() + std::string(" Rot : ") + transform.GetLocalRotation().ToString());
+		if (gameObject == PlayerGo)
+		{
+			r.PushStatisticText("Player : " + gameObject.GetTransform().GetWorldPosition().ToString());
+		}
 	}
 }
 
@@ -210,24 +203,6 @@ void SoftRenderer::DrawMesh3D(const Mesh& InMesh, const Matrix4x4& InMatrix, con
 	for (size_t vi = 0; vi < vertexCount; ++vi)
 	{
 		vertices[vi].Position = Vector4(InMesh.GetVertices()[vi]);
-
-		if (InMesh.IsSkinnedMesh())
-		{
-			Vector3 totalDeltaPosition;
-			Weight w = InMesh.GetWeights()[vi];
-			for (size_t wi = 0; wi < InMesh.GetConnectedBones()[vi]; ++wi)
-			{
-				std::string boneName = w.Bones[wi];
-				if (InMesh.HasBone(boneName))
-				{
-					const Transform& boneTransform = InMesh.GetBone(boneName).GetTransform();
-					Vector3 deltaPosition = boneTransform.GetPosition() - InMesh.GetBindPose(boneName).GetPosition();
-					totalDeltaPosition += deltaPosition * w.Values[wi];
-				}
-			}
-
-			vertices[vi].Position += Vector4(totalDeltaPosition, false);
-		}
 
 		if (InMesh.HasColor())
 		{
@@ -319,7 +294,7 @@ void SoftRenderer::DrawTriangle3D(std::vector<Vertex3D>& InVertices, const Linea
 	if (IsWireframeDrawing())
 	{
 		LinearColor finalColor = _WireframeColor;
-		if (InColor != LinearColor::Error)
+		if (InColor == _BoneWireframeColor)
 		{
 			finalColor = InColor;
 		}

@@ -63,6 +63,7 @@ public: // 월드 트랜스폼 관련 함수
 
 public: // 계층 구조 관련 함수
 	bool SetRoot();
+	bool RemoveFromParent();
 	TransformComponent& GetRoot();
 	bool SetParent(TransformComponent& InTransform);
 

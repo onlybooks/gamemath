@@ -1,26 +1,35 @@
 #include "Precompiled.h"
 using namespace CK::DDD;
 
-bool TransformComponent::SetRoot()
+bool TransformComponent::RemoveFromParent()
 {
 	if (!HasParent())
 	{
 		return true;
 	}
 
-	// 부모에 등록되어 있지 않다면 건너뛴다. 
 	TransformComponent& parent = *GetParentPtr();
 	auto it = std::find(parent.ChildBegin(), parent.ChildEnd(), this);
-	if (it == parent.ChildEnd())
+	if (it != parent.ChildEnd())
 	{
+		// 오류 발생.
 		return false;
 	}
 
-	// 부모 트랜스폼에서 자신의 정보를 제거한다.
+	// 부모 트랜스폼에서 자식 정보를 제거한다.
 	parent.GetChildren().erase(it);
 
 	// 자신에게서 부모 정보를 제거한다.
 	_ParentPtr = nullptr;
+	return true;
+}
+
+bool TransformComponent::SetRoot()
+{
+	if (!RemoveFromParent())
+	{
+		return false;
+	}
 
 	// 로컬 정보를 월드 정보로 변경한다.
 	UpdateLocal();
@@ -47,7 +56,7 @@ bool TransformComponent::SetParent(TransformComponent& InTransform)
 		return false;
 	}
 
-	// 새로운 부모의 자식으로 등록하되 이미 자식으로 등록되어 있다면 건너뛴다. 
+	// 새로운 부모의 자식으로 등록. 이미 있는 경우에는 문제가 있는 상황.
 	auto it = std::find(InTransform.ChildBegin(), InTransform.ChildEnd(), this);
 	if (it != InTransform.ChildEnd())
 	{
@@ -57,6 +66,7 @@ bool TransformComponent::SetParent(TransformComponent& InTransform)
 	// 새로운 트랜스폼 노드로 부모 재설정
 	InTransform.GetChildren().emplace_back(this);
 	_ParentPtr = &InTransform;
+	TransformComponent& newParent = *_ParentPtr;
 
 	// 새로운 부모에 맞춰 자신의 로컬 정보를 업데이트한다.
 	UpdateLocal();
