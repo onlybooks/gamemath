@@ -40,7 +40,7 @@ void SoftRenderer::LoadScene3D()
 	GameEngine& g = Get3DGameEngine();
 
 	// 플레이어
-	constexpr float quadScale = 200.f;
+	constexpr float quadScale = 150.f;
 
 	// 플레이어 설정
 	GameObject& goPlayer = g.CreateNewGameObject(PlayerGo);
@@ -56,6 +56,8 @@ void SoftRenderer::LoadScene3D()
 }
 
 // 실습을 위한 변수
+Vector3 leftBonePosition;
+Vector3 rightBonePosition;
 
 // 게임 로직을 담당하는 함수
 void SoftRenderer::Update3D(float InDeltaSeconds)
@@ -82,7 +84,38 @@ void SoftRenderer::LateUpdate3D(float InDeltaSeconds)
 	GameEngine& g = Get3DGameEngine();
 
 	// 애니메이션 로직의 로컬 변수
+	static float duration = 3.f;
+	static float elapsedTime = 0.f;
 
+	// 애니메이션을 위한 커브 생성 ( 0~1 SineWave )
+	elapsedTime = Math::Clamp(elapsedTime + InDeltaSeconds, 0.f, duration);
+	if (elapsedTime == duration)
+	{
+		elapsedTime = 0.f;
+	}
+	float sinParam = elapsedTime * Math::TwoPI / duration;
+	float sinWave = (sinf(sinParam) + 1.f) * 0.5f;
+
+	GameObject& goPlayer = g.GetGameObject(PlayerGo);
+	Mesh& m = g.GetMesh(goPlayer.GetMeshKey());
+	if (!m.IsSkinnedMesh())
+	{
+		return;
+	}
+
+	const std::string leftBoneName("left");
+	const std::string rightBoneName("right");
+	Transform& leftBoneTransform = m.GetBone(leftBoneName).GetTransform();
+	Transform& rightBoneTransform = m.GetBone(rightBoneName).GetTransform();
+
+	Vector3 deltaLeftPosition = Vector3::UnitX * -sinWave;
+	Vector3 deltaRightPosition = Vector3::UnitX * sinWave;
+
+	leftBonePosition = m.GetBindPose(leftBoneName).GetPosition() + deltaLeftPosition;
+	rightBonePosition = m.GetBindPose(rightBoneName).GetPosition() + deltaRightPosition;
+
+	leftBoneTransform.SetPosition(leftBonePosition);
+	rightBoneTransform.SetPosition(rightBonePosition);
 }
 
 // 렌더링 로직을 담당하는 함수
@@ -153,6 +186,9 @@ void SoftRenderer::Render3D()
 		// 그린 물체를 통계에 포함
 		renderedObjects++;
 	}
+
+	r.PushStatisticText("Left Bone : " + leftBonePosition.ToString());
+	r.PushStatisticText("Right Bone : " + rightBonePosition.ToString());
 }
 
 // 메시를 그리는 함수
@@ -168,6 +204,24 @@ void SoftRenderer::DrawMesh3D(const Mesh& InMesh, const Matrix4x4& InMatrix, con
 	for (size_t vi = 0; vi < vertexCount; ++vi)
 	{
 		vertices[vi].Position = Vector4(InMesh.GetVertices()[vi]);
+
+		if (InMesh.IsSkinnedMesh())
+		{
+			Vector3 totalDeltaPosition;
+			Weight w = InMesh.GetWeights()[vi];
+			for (size_t wi = 0; wi < InMesh.GetConnectedBones()[vi]; ++wi)
+			{
+				std::string boneName = w.Bones[wi];
+				if (InMesh.HasBone(boneName))
+				{
+					const Transform& boneTransform = InMesh.GetBone(boneName).GetTransform();
+					Vector3 deltaPosition = boneTransform.GetPosition() - InMesh.GetBindPose(boneName).GetPosition();
+					totalDeltaPosition += deltaPosition * w.Values[wi];
+				}
+			}
+
+			vertices[vi].Position += Vector4(totalDeltaPosition, false);
+		}
 
 		if (InMesh.HasColor())
 		{
