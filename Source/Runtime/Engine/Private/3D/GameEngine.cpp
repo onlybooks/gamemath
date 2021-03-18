@@ -58,10 +58,26 @@ bool GameEngine::LoadResources()
 	Mesh& cubeMesh = CreateMesh(GameEngine::CubeMesh);
 	auto& v = cubeMesh.GetVertices();
 	auto& i = cubeMesh.GetIndices();
+	auto& uv = cubeMesh.GetUVs();
 
 	static const float halfSize = 0.5f;
 	std::transform(cubeMeshPositions.begin(), cubeMeshPositions.end(), std::back_inserter(v), [&](auto& p) { return p * halfSize; });
 	std::transform(cubeMeshIndice.begin(), cubeMeshIndice.end(), std::back_inserter(i), [&](auto& p) { return p; });
+
+	uv = {
+		// Right
+		Vector2(0.f, 48.f) / 64.f, Vector2(8.f, 48.f) / 64.f, Vector2(8.f, 56.f) / 64.f, Vector2(0.f, 56.f) / 64.f,
+		// Front
+		Vector2(8.f, 48.f) / 64.f, Vector2(8.f, 56.f) / 64.f, Vector2(16.f, 56.f) / 64.f, Vector2(16.f, 48.f) / 64.f,
+		// Back
+		Vector2(32.f, 48.f) / 64.f, Vector2(32.f, 56.f) / 64.f, Vector2(24.f, 56.f) / 64.f, Vector2(24.f, 48.f) / 64.f,
+		// Left
+		Vector2(24.f, 48.f) / 64.f, Vector2(16.f, 48.f) / 64.f, Vector2(16.f, 56.f) / 64.f, Vector2(24.f, 56.f) / 64.f,
+		// Top
+		Vector2(8.f, 64.f) / 64.f, Vector2(16.f, 64.f) / 64.f, Vector2(16.f, 56.f) / 64.f, Vector2(8.f, 56.f) / 64.f,
+		// Bottom
+		Vector2(16.f, 64.f) / 64.f, Vector2(24.f, 64.f) / 64.f, Vector2(24.f, 56.f) / 64.f, Vector2(16.f, 56.f) / 64.f
+	};
 
 	// 텍스쳐 로딩
 	Texture& diffuseTexture = CreateTexture(GameEngine::BaseTexture, GameEngine::SteveTexturePath);
