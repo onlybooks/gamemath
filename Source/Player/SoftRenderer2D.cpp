@@ -85,7 +85,7 @@ void SoftRenderer::Render2D()
 	// 렌더링 로직의 로컬 변수
 
 
-	// 밝은 회색의 선을 사용해 벡터의 선형성을 표현
+	// 밝은 회색의 선을 사용해 벡터의 기울기를 표현
 	static float lineLength = 500.f;
 	Vector2 lineStart = currentPosition * lineLength;
 	Vector2 lineEnd = currentPosition * -lineLength;
