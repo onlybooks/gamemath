@@ -322,6 +322,7 @@ void SoftRenderer::DrawTriangle3D(std::vector<Vertex3D>& InVertices, const Linea
 					// 깊이 버퍼 테스팅
 					if (toggleDepthTesting)
 					{
+						// 깊이 테스팅
 						float newDepth = InVertices[0].Position.Z * oneMinusST + InVertices[1].Position.Z * s + InVertices[2].Position.Z * t;
 						float prevDepth = r.GetDepthBufferValue(fragment);
 						if (newDepth < prevDepth)
