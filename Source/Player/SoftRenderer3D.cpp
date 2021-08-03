@@ -476,12 +476,8 @@ void SoftRenderer::DrawTriangle3D(std::vector<Vertex3D>& InVertices, const Linea
 
 				if (((s >= 0.f) && (s <= 1.f)) && ((t >= 0.f) && (t <= 1.f)) && ((oneMinusST >= 0.f) && (oneMinusST <= 1.f)))
 				{
-					// 투영보정에 사용할 공통 분모
-					float z = invZ0 * oneMinusST + invZ1 * s + invZ2 * t;
-					float invZ = 1.f / z;
-
-					// 깊이 버퍼 테스팅
-					float newDepth = (InVertices[0].Position.Z * oneMinusST * invZ0 + InVertices[1].Position.Z * s * invZ1 + InVertices[2].Position.Z * t * invZ2) * invZ;
+					// 깊이 테스팅
+					float newDepth = InVertices[0].Position.Z * oneMinusST + InVertices[1].Position.Z * s + InVertices[2].Position.Z * t;
 					float prevDepth = r.GetDepthBufferValue(fragment);
 					if (newDepth < prevDepth)
 					{
@@ -496,6 +492,7 @@ void SoftRenderer::DrawTriangle3D(std::vector<Vertex3D>& InVertices, const Linea
 
 					if (IsDepthBufferDrawing())
 					{
+						// 카메라로부터의 거리에 따라 균일하게 증감하는 흑백 값으로 변환
 						float grayScale = (invZ - n) / (f - n);
 
 						// 뎁스 버퍼 그리기
