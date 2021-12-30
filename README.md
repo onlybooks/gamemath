@@ -1,6 +1,7 @@
 # CKSoftRenderer
 
 교육적 목적으로 고안된 소프트렌더러 프로젝트입니다. 
+
 브랜치를 사용해 단계별로 코드가 구현되어 있으니 책의 가이드에 따라 올바른 브랜치를 다운받기 바랍니다. 
 
 ## 요구사항
@@ -25,15 +26,15 @@
 | 페이지 업,다운 | 카메라 FOV 조절 |
 
 ## 일반 모드
-텍스쳐를 매핑해 렌더링합니다. 
-기즈모는 표시되나 본은 표시되지 않습니다. 
+텍스쳐를 매핑해 렌더링합니다. 기즈모는 표시되나 본은 표시되지 않습니다. 
+
+구동이 느린 경우 Release 모드로 컴파일해 실행하기 바랍니다.
 
 ![일반 모드](https://github.com/onlybooks/gamemath/blob/main/Document/Normal.png "일반 모드")
 
 
-## 와이어 프레임 모드
-선을 사용해 외곽선만 렌더링합니다. 
-기즈모와 본을 모두 표시해줍니다. 
+## 와이어프레임 모드
+선을 사용해 외곽선만 렌더링합니다. 기즈모와 본을 모두 표시해줍니다. 
 
 ![와이어프레임 모드](https://github.com/onlybooks/gamemath/blob/main/Document/Wireframe1.png "와이어프레임 모드")
 
@@ -41,9 +42,8 @@
 
 ![와이어프레임 모드 2](https://github.com/onlybooks/gamemath/blob/main/Document/Wireframe2.png "와이어프레임 모드 2")
 
-## 뎁스 버퍼 모드
-투영 변환 후 뎁스 값을 시각화하여 보여줍니다.
-뎁스 테스팅은 비선형 값으로 진행하지만, 이를 선형화시켜 보여줍니다. 
+## 깊이 버퍼 모드
+원근 투영 변환 후 깊이 값을 선형화시켜 보여줍니다.  
 
-![뎁스 버퍼 모드](https://github.com/onlybooks/gamemath/blob/main/Document/Depth.png "뎁스버퍼 모드")
+![깊이 버퍼 모드](https://github.com/onlybooks/gamemath/blob/main/Document/Depth.png "깊이버퍼 모드")
 
