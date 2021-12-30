@@ -56,7 +56,7 @@ void SoftRenderer::LoadScene2D()
 float fovAngle = 60.f;
 Vector2 playerPosition(0.f, 0.f);
 LinearColor playerColor = LinearColor::Gray;
-Vector2 targetPosition(100.f, 100.f);
+Vector2 targetPosition(0.f, 100.f);
 LinearColor targetColor = LinearColor::Blue;
 
 // 게임 로직을 담당하는 함수
@@ -102,6 +102,7 @@ void SoftRenderer::Update2D(float InDeltaSeconds)
 
 	Vector2 inputVector = Vector2(input.GetAxis(InputAxis::XAxis), input.GetAxis(InputAxis::YAxis)).GetNormalize();
 	Vector2 deltaPosition = inputVector * moveSpeed * InDeltaSeconds;
+	playerPosition += deltaPosition;
 
 	Vector2 f = Vector2::UnitY;
 	Vector2 v = (targetPosition - playerPosition).GetNormalize();
@@ -117,8 +118,6 @@ void SoftRenderer::Update2D(float InDeltaSeconds)
 		playerColor = LinearColor::Gray;
 		targetColor = LinearColor::Blue;
 	}
-
-	playerPosition += deltaPosition;
 }
 
 // 렌더링 로직을 담당하는 함수
