@@ -118,12 +118,12 @@ void SoftRenderer::Render2D()
 	float sin = 0.f, cos = 0.f;
 	Math::GetSinCos(sin, cos, currentDegree);
 
-	// 회전 행렬의 기저 벡터와 행렬
+	// 회전 변환 행렬의 기저 벡터와 행렬
 	Vector2 rBasis1(cos, sin);
 	Vector2 rBasis2(-sin, cos);
 	Matrix2x2 rMatrix(rBasis1, rBasis2);
 
-	// 크기 행렬의 기저 벡터와 행렬
+	// 크기 변환 행렬의 기저 벡터와 행렬
 	Vector2 sBasis1 = Vector2::UnitX * currentScale;
 	Vector2 sBasis2 = Vector2::UnitY * currentScale;
 	Matrix2x2 sMatrix(sBasis1, sBasis2);
