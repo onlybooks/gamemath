@@ -83,9 +83,9 @@ FORCEINLINE constexpr Transform Transform::Inverse() const
 	if (!Math::EqualsInTolerance(Scale.Z, 0.f)) reciprocalScale.Z = 1.f / Scale.Z;
 
 	Transform result;
-	result.Rotation = Rotation.Inverse();
-	result.Scale = reciprocalScale;
-	result.Position = result.Rotation * (result.Scale * -Position);
+	result.SetScale(reciprocalScale);
+	result.SetRotation(Rotation.Inverse());
+	result.SetPosition(result.GetScale() * (result.GetRotation() * -Position));
 	return result;
 }
 
@@ -94,9 +94,9 @@ FORCEINLINE constexpr Transform Transform::LocalToWorld(const Transform& InParen
 {
 	// 현재 트랜스폼 정보가 로컬인 경우
 	Transform result;
-	result.Rotation = InParentWorldTransform.Rotation * Rotation;
-	result.Scale = InParentWorldTransform.Scale * Scale;
-	result.Position = InParentWorldTransform.Position + InParentWorldTransform.Rotation.RotateVector(InParentWorldTransform.Scale * Position);
+	result.SetScale(InParentWorldTransform.GetScale() * GetScale());
+	result.SetRotation(InParentWorldTransform.GetRotation() * GetRotation());
+	result.SetPosition(InParentWorldTransform.GetPosition() + InParentWorldTransform.GetScale() * (InParentWorldTransform.GetRotation() * GetPosition()));
 	return result;
 }
 
@@ -106,9 +106,9 @@ FORCEINLINE constexpr Transform Transform::WorldToLocal(const Transform& InParen
 	Transform invParent = InParentWorldTransform.Inverse();
 
 	Transform result;
-	result.Scale = invParent.GetScale() * Scale;
-	result.Rotation = invParent.GetRotation() * Rotation;
-	result.Position = invParent.Position + invParent.Rotation.RotateVector(invParent.Scale * Position);
+	result.SetScale(invParent.GetScale() * GetScale());
+	result.SetRotation(invParent.GetRotation() * GetRotation());
+	result.SetPosition(invParent.GetPosition() + invParent.GetScale() * (invParent.GetRotation() * GetPosition()));
 	return result;
 }
 
@@ -117,7 +117,7 @@ FORCEINLINE constexpr Vector3 Transform::WorldToLocalVector(const Vector3& InWor
 	// 현재 트랜스폼을 기준으로 월드 벡터를 로컬 벡터로 변환
 	Transform invTransform = Inverse();
 
-	return invTransform.Position + invTransform.Rotation.RotateVector(invTransform.Scale * InWorldVector);
+	return invTransform.GetPosition() + invTransform.GetScale() * (invTransform.GetRotation() * InWorldVector);
 }
 
 }
