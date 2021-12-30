@@ -28,22 +28,22 @@
 텍스쳐를 매핑해 렌더링합니다. 
 기즈모는 표시되나 본은 표시되지 않습니다. 
 
-![일반 모드](https://github.com/ideugu/CKSoftRenderer/blob/main/Document/Normal.png "일반 모드")
+![일반 모드](https://github.com/onlybooks/gamemath/blob/main/Document/Normal.png "일반 모드")
 
 
 ## 와이어 프레임 모드
 선을 사용해 외곽선만 렌더링합니다. 
 기즈모와 본을 모두 표시해줍니다. 
 
-![와이어프레임 모드](https://github.com/ideugu/CKSoftRenderer/blob/main/Document/Wireframe1.png "와이어프레임 모드")
+![와이어프레임 모드](https://github.com/onlybooks/gamemath/blob/main/Document/Wireframe1.png "와이어프레임 모드")
 
 가까이서 확대하는 경우 동차좌표계에서 삼각형이 분할되는 과정을 확인할 수 있습니다. 
 
-![와이어프레임 모드 2](https://github.com/ideugu/CKSoftRenderer/blob/main/Document/Wireframe2.png "와이어프레임 모드 2")
+![와이어프레임 모드 2](https://github.com/onlybooks/gamemath/blob/main/Document/Wireframe2.png "와이어프레임 모드 2")
 
 ## 뎁스 버퍼 모드
 투영 변환 후 뎁스 값을 시각화하여 보여줍니다.
 뎁스 테스팅은 비선형 값으로 진행하지만, 이를 선형화시켜 보여줍니다. 
 
-![뎁스 버퍼 모드](https://github.com/ideugu/CKSoftRenderer/blob/main/Document/Depth.png "뎁스버퍼 모드")
+![뎁스 버퍼 모드](https://github.com/onlybooks/gamemath/blob/main/Document/Depth.png "뎁스버퍼 모드")
 
