@@ -8,7 +8,7 @@ std::vector<std::string> Matrix2x2::ToStrings() const
 {
 	std::vector<std::string> result;
 
-	Matrix2x2 trMatrix = this->Tranpose();
+	Matrix2x2 trMatrix = this->Transpose();
 	for (BYTE i = 0; i < Rank; ++i)
 	{
 		char row[64];
