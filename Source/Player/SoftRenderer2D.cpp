@@ -53,9 +53,10 @@ void SoftRenderer::LoadScene2D()
 }
 
 // 게임 로직과 렌더링 로직이 공유하는 변수
+float fovAngle = 60.f;
 Vector2 playerPosition(0.f, 0.f);
 LinearColor playerColor = LinearColor::Gray;
-Vector2 targetPosition(100.f, 100.f);
+Vector2 targetPosition(0.f, 100.f);
 LinearColor targetColor = LinearColor::Blue;
 
 // 게임 로직을 담당하는 함수
@@ -135,6 +136,13 @@ void SoftRenderer::Render2D()
 	}
 
 	// 플레이어 렌더링. 
+	// 플레이어 렌더링. 
+	float halfFovSin = 0.f, halfFovCos = 0.f;
+	Math::GetSinCos(halfFovSin, halfFovCos, fovAngle * 0.5f);
+
+	r.DrawLine(playerPosition, playerPosition + Vector2(sightLength * halfFovSin, sightLength * halfFovCos), playerColor);
+	r.DrawLine(playerPosition, playerPosition + Vector2(-sightLength * halfFovSin, sightLength * halfFovCos), playerColor);
+	r.DrawLine(playerPosition, playerPosition + Vector2::UnitY * sightLength * 0.2f, playerColor);
 	for (auto const& v : sphere)
 	{
 		r.DrawPoint(v + playerPosition, playerColor);
