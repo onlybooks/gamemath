@@ -54,7 +54,7 @@ public:
 
 	// ≈ÿΩ∫√≥
 	static const std::size_t BaseTexture;
-	static const std::string SteveTexturePath;
+	static const std::string CharacterTexturePath;
 
 private:
 	bool _IsInitialized = false;
