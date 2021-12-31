@@ -108,6 +108,7 @@ void SoftRenderer::Render2D()
 
 	// 투영할 라인 그리기
 	r.DrawLine(lineStart, lineEnd, LinearColor::Black);
+	r.DrawLine(lineStart, point, LinearColor::Red);
 }
 
 // 메시를 그리는 함수
