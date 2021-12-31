@@ -125,6 +125,7 @@ void SoftRenderer::Render2D()
 
     // 투영할 라인 그리기
     r.DrawLine(lineStart, lineEnd, LinearColor::Black);
+    r.DrawLine(lineStart, point, LinearColor::Red);
 
     // 투영된 위치와 거리 계산
     Vector2 unitV = (lineEnd - lineStart).GetNormalize();
@@ -136,7 +137,7 @@ void SoftRenderer::Render2D()
     // 투영된 점 그리기
     for (auto const& v : circle)
     {
-        r.DrawPoint(v + projectedPoint, LinearColor::Magenta);
+        r.DrawPoint(v + projectedPoint, LinearColor::Blue);
     }
 
     // 투영 라인 그리기
