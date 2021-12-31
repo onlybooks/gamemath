@@ -66,7 +66,7 @@ public: // 주요 키 값
 
 	// 텍스처
 	static const std::size_t BaseTexture;
-	static const std::string SteveTexturePath;
+	static const std::string CharacterTexturePath;
 
 private:
 	bool _IsInitialized = false;
