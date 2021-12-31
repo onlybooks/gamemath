@@ -130,7 +130,7 @@ void SoftRenderer::Render2D()
     Vector3 tBasis3(currentPosition.X, currentPosition.Y, 1.f);
     Matrix3x3 tMatrix(tBasis1, tBasis2, tBasis3);
 
-    // 모든 아핀 변환의 조합 행렬. 크기-회전-이동 순으로 조합
+    // 모든 아핀 변환을 곱한 합성 행렬. 크기-회전-이동 순으로 적용
     Matrix3x3 finalMatrix = tMatrix * rMatrix * sMatrix;
 
     // 행렬을 적용한 메시 정보를 사용해 물체를 렌더링
