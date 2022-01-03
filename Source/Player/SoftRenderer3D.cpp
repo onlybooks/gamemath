@@ -136,7 +136,7 @@ void SoftRenderer::Render3D()
 	const Matrix4x4 pvMatrix = mainCamera.GetPerspectiveViewMatrix();
 
 	// 절두체 구축을 위한 투영 행렬의 설정
-	Matrix4x4 ptMatrix = pMatrix.Tranpose();
+	Matrix4x4 ptMatrix = pMatrix.Transpose();
 
 	// 절두체를 구성하는 평면의 방정식
 	std::array<Plane, 6> frustumPlanes = {
@@ -168,13 +168,14 @@ void SoftRenderer::Render3D()
 		// 렌더링에 필요한 게임 오브젝트의 주요 레퍼런스를 얻기
 		const Mesh& mesh = g.GetMesh(gameObject.GetMeshKey());
 		const TransformComponent& transform = gameObject.GetTransform();
+		Matrix4x4 mMatrix = transform.GetModelingMatrix();
 
 		LinearColor finalColor = gameObject.GetColor();
 
 		// 바운딩 영역의 크기를 트랜스폼에 맞게 조정
 		Sphere sphereBound = mesh.GetSphereBound();
 		sphereBound.Radius *= transform.GetScale().Max();
-		sphereBound.Center = (vMatrix * Vector4(transform.GetPosition())).ToVector3();
+		sphereBound.Center = (vMatrix * mMatrix * Vector4(sphereBound.Center)).ToVector3();
 
 		// 영역을 사용해 절두체 컬링을 구현
 		auto checkResult = frustumFromMatrix.CheckBound(sphereBound);
@@ -191,7 +192,7 @@ void SoftRenderer::Render3D()
 		}
 
 		// 최종 행렬 계산
-		Matrix4x4 finalMatrix = pvMatrix * transform.GetModelingMatrix();
+		Matrix4x4 finalMatrix = pvMatrix * mMatrix;
 
 		// 메시 그리기
 		DrawMesh3D(mesh, finalMatrix, finalColor);
@@ -358,18 +359,14 @@ void SoftRenderer::DrawTriangle3D(std::vector<Vertex3D>& InVertices, const Linea
 				float t = (wdotu * udotv - wdotv * udotu) * invDenominator;
 				float oneMinusST = 1.f - s - t;
 
-				// 투영보정에 사용할 공통 분모
-				float z = invZ0 * oneMinusST + invZ1 * s + invZ2 * t;
-				float invZ = 1.f / z;
-
 				if (((s >= 0.f) && (s <= 1.f)) && ((t >= 0.f) && (t <= 1.f)) && ((oneMinusST >= 0.f) && (oneMinusST <= 1.f)))
 				{
 					// 투영보정에 사용할 공통 분모
 					float z = invZ0 * oneMinusST + invZ1 * s + invZ2 * t;
 					float invZ = 1.f / z;
 
-					// 깊이 버퍼 테스팅
-					float newDepth = (InVertices[0].Position.Z * oneMinusST * invZ0 + InVertices[1].Position.Z * s * invZ1 + InVertices[2].Position.Z * t * invZ2) * invZ;
+					// 깊이 테스팅
+					float newDepth = InVertices[0].Position.Z * oneMinusST + InVertices[1].Position.Z * s + InVertices[2].Position.Z * t;
 					float prevDepth = r.GetDepthBufferValue(fragment);
 					if (newDepth < prevDepth)
 					{
@@ -387,7 +384,7 @@ void SoftRenderer::DrawTriangle3D(std::vector<Vertex3D>& InVertices, const Linea
 						float grayScale = (newDepth + 1.f) * 0.5f;
 						if (useLinearVisualization)
 						{
-							// 시각화를 위해 선형화된 흑백 값으로 변환
+							// 카메라로부터의 거리에 따라 균일하게 증감하는 흑백 값으로 변환
 							grayScale = (invZ - n) / (f - n);
 						}
 
