@@ -313,12 +313,12 @@ void SoftRenderer::DrawTriangle3D(std::vector<Vertex3D>& InVertices, const Linea
 				float t = (wdotu * udotv - wdotv * udotu) * invDenominator;
 				float oneMinusST = 1.f - s - t;
 
-				// 투영보정에 사용할 공통 분모
-				float z = invZ0 * oneMinusST + invZ1 * s + invZ2 * t;
-				float invZ = 1.f / z;
-
 				if (((s >= 0.f) && (s <= 1.f)) && ((t >= 0.f) && (t <= 1.f)) && ((oneMinusST >= 0.f) && (oneMinusST <= 1.f)))
 				{
+					// 투영보정에 사용할 공통 분모
+					float z = invZ0 * oneMinusST + invZ1 * s + invZ2 * t;
+					float invZ = 1.f / z;
+
 					// 깊이 버퍼 테스팅
 					if (toggleDepthTesting)
 					{
