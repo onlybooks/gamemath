@@ -13,13 +13,13 @@ const std::string GameEngine::LeftLegBone("LeftLegBone");
 const std::string GameEngine::RightLegBone("RightLegBone");
 
 // 메시
-const std::size_t GameEngine::CharacterMesh = std::hash<std::string>()("SK_Steve");
+const std::size_t GameEngine::CharacterMesh = std::hash<std::string>()("SK_CKMan");
 const std::size_t GameEngine::ArrowMesh = std::hash<std::string>()("SM_Arrow");
 const std::size_t GameEngine::PlaneMesh = std::hash<std::string>()("SM_Plane");
 
 // 텍스처
 const std::size_t GameEngine::BaseTexture = std::hash<std::string>()("Base");
-const std::string GameEngine::SteveTexturePath("Steve.png");
+const std::string GameEngine::CharacterTexturePath("CKMan.png");
 
 struct GameObjectCompare
 {
@@ -256,7 +256,7 @@ bool GameEngine::LoadResources()
 	}
 
 	// 텍스쳐 로딩
-	Texture& diffuseTexture = CreateTexture(GameEngine::BaseTexture, GameEngine::SteveTexturePath);
+	Texture& diffuseTexture = CreateTexture(GameEngine::BaseTexture, GameEngine::CharacterTexturePath);
 	assert(diffuseTexture.IsIntialized());
 
 	return true;

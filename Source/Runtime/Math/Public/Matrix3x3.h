@@ -32,7 +32,7 @@ public:
 	// ¸â¹öÇÔ¼ö 
 	FORCEINLINE Matrix2x2 ToMatrix2x2() const;
 	FORCEINLINE void SetIdentity();
-	FORCEINLINE Matrix3x3 Tranpose() const;
+	FORCEINLINE Matrix3x3 Transpose() const;
 
 	std::vector<std::string> ToStrings() const;
 
@@ -49,7 +49,7 @@ FORCEINLINE void Matrix3x3::SetIdentity()
 	*this = Matrix3x3::Identity;
 }
 
-FORCEINLINE Matrix3x3 Matrix3x3::Tranpose() const
+FORCEINLINE Matrix3x3 Matrix3x3::Transpose() const
 {
 	return Matrix3x3(
 		Vector3(Cols[0].X, Cols[1].X, Cols[2].X),
@@ -81,7 +81,7 @@ FORCEINLINE Matrix3x3 Matrix3x3::operator*(float InScalar) const
 
 FORCEINLINE Matrix3x3 Matrix3x3::operator*(const Matrix3x3 &InMatrix) const
 {
-	Matrix3x3 transposedMatrix = Tranpose();
+	Matrix3x3 transposedMatrix = Transpose();
 	return Matrix3x3(
 		Vector3(transposedMatrix[0].Dot(InMatrix[0]), transposedMatrix[1].Dot(InMatrix[0]), transposedMatrix[2].Dot(InMatrix[0])),
 		Vector3(transposedMatrix[0].Dot(InMatrix[1]), transposedMatrix[1].Dot(InMatrix[1]), transposedMatrix[2].Dot(InMatrix[1])),
@@ -92,7 +92,7 @@ FORCEINLINE Matrix3x3 Matrix3x3::operator*(const Matrix3x3 &InMatrix) const
 
 FORCEINLINE Vector3 Matrix3x3::operator*(const Vector3& InVector) const
 {
-	Matrix3x3 transposedMatrix = Tranpose();
+	Matrix3x3 transposedMatrix = Transpose();
 	return Vector3(
 		transposedMatrix[0].Dot(InVector),
 		transposedMatrix[1].Dot(InVector),
