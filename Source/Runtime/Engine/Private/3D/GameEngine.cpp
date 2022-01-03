@@ -13,13 +13,13 @@ const std::string GameEngine::LeftLegBone("LeftLegBone");
 const std::string GameEngine::RightLegBone("RightLegBone");
 
 // 메시
-const std::size_t GameEngine::CharacterMesh = std::hash<std::string>()("SK_Steve");
+const std::size_t GameEngine::CharacterMesh = std::hash<std::string>()("SK_CKMan");
 const std::size_t GameEngine::ArrowMesh = std::hash<std::string>()("SM_Arrow");
 const std::size_t GameEngine::PlaneMesh = std::hash<std::string>()("SM_Plane");
 
 // 텍스처
 const std::size_t GameEngine::BaseTexture = std::hash<std::string>()("Base");
-const std::string GameEngine::SteveTexturePath("Steve.png");
+const std::string GameEngine::CharacterTexturePath("CKMan.png");
 
 struct GameObjectCompare
 {
@@ -77,7 +77,6 @@ bool GameEngine::LoadResources()
 	auto& i = characterMesh.GetIndices();
 	auto& uv = characterMesh.GetUVs();
 
-	// 6개의 파트로 구성되어 있음.
 	static constexpr std::array<Vector3, totalCharacterParts> cubeMeshSize = {
 		headSize, bodySize, armLegSize, armLegSize, armLegSize, armLegSize
 	};
@@ -94,77 +93,77 @@ bool GameEngine::LoadResources()
 
 	uv = {
 		// HeadRight
-		Vector2(0.f, 48.f) / 64.f, Vector2(8.f, 48.f) / 64.f, Vector2(8.f, 56.f) / 64.f, Vector2(0.f, 56.f) / 64.f,
+		Vector2(0.f, 48.f) / 64.f, Vector2(0.f, 56.f) / 64.f, Vector2(8.f, 56.f) / 64.f, Vector2(8.f, 48.f) / 64.f,
 		// HeadFront
 		Vector2(8.f, 48.f) / 64.f, Vector2(8.f, 56.f) / 64.f, Vector2(16.f, 56.f) / 64.f, Vector2(16.f, 48.f) / 64.f,
 		// HeadBack
-		Vector2(32.f, 48.f) / 64.f, Vector2(32.f, 56.f) / 64.f, Vector2(24.f, 56.f) / 64.f, Vector2(24.f, 48.f) / 64.f,
+		Vector2(24.f, 48.f) / 64.f, Vector2(24.f, 56.f) / 64.f, Vector2(32.f, 56.f) / 64.f, Vector2(32.f, 48.f) / 64.f,
 		// HeadLeft
-		Vector2(24.f, 48.f) / 64.f, Vector2(16.f, 48.f) / 64.f, Vector2(16.f, 56.f) / 64.f, Vector2(24.f, 56.f) / 64.f,
+		Vector2(16.f, 48.f) / 64.f, Vector2(16.f, 56.f) / 64.f, Vector2(24.f, 56.f) / 64.f, Vector2(24.f, 48.f) / 64.f,
 		// HeadTop
-		Vector2(8.f, 64.f) / 64.f, Vector2(16.f, 64.f) / 64.f, Vector2(16.f, 56.f) / 64.f, Vector2(8.f, 56.f) / 64.f,
+		Vector2(8.f, 56.f) / 64.f, Vector2(8.f, 64.f) / 64.f, Vector2(16.f, 64.f) / 64.f, Vector2(16.f, 56.f) / 64.f,
 		// HeadBottom
-		Vector2(16.f, 64.f) / 64.f, Vector2(24.f, 64.f) / 64.f, Vector2(24.f, 56.f) / 64.f, Vector2(16.f, 56.f) / 64.f,
+		Vector2(16.f, 56.f) / 64.f, Vector2(16.f, 64.f) / 64.f, Vector2(24.f, 64.f) / 64.f, Vector2(24.f, 56.f) / 64.f,
 		// BodyRight
-		Vector2(16.f, 32.f) / 64.f, Vector2(20.f, 32.f) / 64.f, Vector2(20.f, 44.f) / 64.f, Vector2(16.f, 44.f) / 64.f,
+		Vector2(16.f, 32.f) / 64.f, Vector2(16.f, 44.f) / 64.f, Vector2(20.f, 44.f) / 64.f, Vector2(20.f, 32.f) / 64.f,
 		// BodyFront
 		Vector2(20.f, 32.f) / 64.f, Vector2(20.f, 44.f) / 64.f, Vector2(28.f, 44.f) / 64.f, Vector2(28.f, 32.f) / 64.f,
 		// BodyBack
-		Vector2(36.f, 32.f) / 64.f, Vector2(36.f, 44.f) / 64.f, Vector2(28.f, 44.f) / 64.f, Vector2(28.f, 32.f) / 64.f,
+		Vector2(32.f, 32.f) / 64.f, Vector2(32.f, 44.f) / 64.f, Vector2(40.f, 44.f) / 64.f, Vector2(40.f, 32.f) / 64.f,
 		// BodyLeft
-		Vector2(40.f, 32.f) / 64.f, Vector2(36.f, 32.f) / 64.f, Vector2(36.f, 44.f) / 64.f, Vector2(40.f, 44.f) / 64.f,
+		Vector2(28.f, 32.f) / 64.f, Vector2(28.f, 44.f) / 64.f, Vector2(32.f, 44.f) / 64.f, Vector2(32.f, 32.f) / 64.f,
 		// BodyTop
-		Vector2(20.f, 48.f) / 64.f, Vector2(28.f, 48.f) / 64.f, Vector2(28.f, 44.f) / 64.f, Vector2(20.f, 44.f) / 64.f,
+		Vector2(20.f, 44.f) / 64.f, Vector2(20.f, 48.f) / 64.f, Vector2(28.f, 48.f) / 64.f, Vector2(28.f, 44.f) / 64.f,
 		// BodyBottom
-		Vector2(28.f, 48.f) / 64.f, Vector2(36.f, 48.f) / 64.f, Vector2(36.f, 44.f) / 64.f, Vector2(28.f, 44.f) / 64.f,
+		Vector2(28.f, 44.f) / 64.f, Vector2(28.f, 48.f) / 64.f, Vector2(36.f, 48.f) / 64.f, Vector2(36.f, 44.f) / 64.f,
 		// LeftArmRight
-		Vector2(32.f, 0.f) / 64.f, Vector2(36.f, 0.f) / 64.f, Vector2(36.f, 12.f) / 64.f, Vector2(32.f, 12.f) / 64.f,
+		Vector2(32.f, 0.f) / 64.f, Vector2(32.f, 12.f) / 64.f, Vector2(36.f, 12.f) / 64.f, Vector2(36.f, 0.f) / 64.f,
 		// LeftArmFront
 		Vector2(36.f, 0.f) / 64.f, Vector2(36.f, 12.f) / 64.f, Vector2(40.f, 12.f) / 64.f, Vector2(40.f, 0.f) / 64.f,
 		// LeftArmBack
-		Vector2(44.f, 0.f) / 64.f, Vector2(44.f, 12.f) / 64.f, Vector2(40.f, 12.f) / 64.f, Vector2(40.f, 0.f) / 64.f,
+		Vector2(44.f, 0.f) / 64.f, Vector2(44.f, 12.f) / 64.f, Vector2(48.f, 12.f) / 64.f, Vector2(48.f, 0.f) / 64.f,
 		// LeftArmLeft
-		Vector2(48.f, 0.f) / 64.f, Vector2(44.f, 0.f) / 64.f, Vector2(44.f, 12.f) / 64.f, Vector2(48.f, 12.f) / 64.f,
+		Vector2(40.f, 0.f) / 64.f, Vector2(40.f, 12.f) / 64.f, Vector2(44.f, 12.f) / 64.f, Vector2(44.f, 0.f) / 64.f,
 		// LeftArmTop
-		Vector2(36.f, 16.f) / 64.f, Vector2(40.f, 16.f) / 64.f, Vector2(40.f, 12.f) / 64.f, Vector2(36.f, 12.f) / 64.f,
+		Vector2(36.f, 12.f) / 64.f, Vector2(36.f, 16.f) / 64.f, Vector2(40.f, 16.f) / 64.f, Vector2(40.f, 12.f) / 64.f,
 		// LeftArmBottom
-		Vector2(40.f, 16.f) / 64.f, Vector2(44.f, 16.f) / 64.f, Vector2(44.f, 12.f) / 64.f, Vector2(40.f, 12.f) / 64.f,
+		Vector2(40.f, 12.f) / 64.f, Vector2(40.f, 16.f) / 64.f, Vector2(44.f, 16.f) / 64.f, Vector2(44.f, 12.f) / 64.f,
 		// RightArmRight
-		Vector2(40.f, 32.f) / 64.f, Vector2(44.f, 32.f) / 64.f, Vector2(44.f, 44.f) / 64.f, Vector2(40.f, 44.f) / 64.f,
+		Vector2(40.f, 32.f) / 64.f, Vector2(40.f, 44.f) / 64.f, Vector2(44.f, 44.f) / 64.f, Vector2(44.f, 32.f) / 64.f,
 		// RightArmFront
 		Vector2(44.f, 32.f) / 64.f, Vector2(44.f, 44.f) / 64.f, Vector2(48.f, 44.f) / 64.f, Vector2(48.f, 32.f) / 64.f,
 		// RightArmBack
-		Vector2(52.f, 32.f) / 64.f, Vector2(52.f, 44.f) / 64.f, Vector2(48.f, 44.f) / 64.f, Vector2(48.f, 32.f) / 64.f,
+		Vector2(52.f, 32.f) / 64.f, Vector2(52.f, 44.f) / 64.f, Vector2(56.f, 44.f) / 64.f, Vector2(56.f, 32.f) / 64.f,
 		// RightArmLeft
-		Vector2(56.f, 32.f) / 64.f, Vector2(52.f, 32.f) / 64.f, Vector2(52.f, 44.f) / 64.f, Vector2(56.f, 44.f) / 64.f,
+		Vector2(48.f, 32.f) / 64.f, Vector2(48.f, 44.f) / 64.f, Vector2(52.f, 44.f) / 64.f, Vector2(52.f, 32.f) / 64.f,
 		// RightArmTop
-		Vector2(44.f, 48.f) / 64.f, Vector2(48.f, 48.f) / 64.f, Vector2(48.f, 44.f) / 64.f, Vector2(44.f, 44.f) / 64.f,
+		Vector2(44.f, 44.f) / 64.f, Vector2(44.f, 48.f) / 64.f, Vector2(48.f, 48.f) / 64.f, Vector2(48.f, 44.f) / 64.f,
 		// RightArmBottom
-		Vector2(48.f, 48.f) / 64.f, Vector2(52.f, 48.f) / 64.f, Vector2(52.f, 44.f) / 64.f, Vector2(48.f, 44.f) / 64.f,
+		Vector2(48.f, 44.f) / 64.f, Vector2(48.f, 48.f) / 64.f, Vector2(52.f, 48.f) / 64.f, Vector2(52.f, 44.f) / 64.f,
 		// LeftLegRight
-		Vector2(16.f, 0.f) / 64.f, Vector2(20.f, 0.f) / 64.f, Vector2(20.f, 12.f) / 64.f, Vector2(16.f, 12.f) / 64.f,
+		Vector2(16.f, 0.f) / 64.f, Vector2(16.f, 12.f) / 64.f, Vector2(20.f, 12.f) / 64.f, Vector2(20.f, 0.f) / 64.f,
 		// LeftLegFront
 		Vector2(20.f, 0.f) / 64.f, Vector2(20.f, 12.f) / 64.f, Vector2(24.f, 12.f) / 64.f, Vector2(24.f, 0.f) / 64.f,
 		// LeftLegBack
-		Vector2(28.f, 0.f) / 64.f, Vector2(28.f, 12.f) / 64.f, Vector2(24.f, 12.f) / 64.f, Vector2(24.f, 0.f) / 64.f,
+		Vector2(28.f, 0.f) / 64.f, Vector2(28.f, 12.f) / 64.f, Vector2(32.f, 12.f) / 64.f, Vector2(32.f, 0.f) / 64.f,
 		// LeftLegLeft
-		Vector2(32.f, 0.f) / 64.f, Vector2(28.f, 0.f) / 64.f, Vector2(28.f, 12.f) / 64.f, Vector2(32.f, 12.f) / 64.f,
+		Vector2(24.f, 0.f) / 64.f, Vector2(24.f, 12.f) / 64.f, Vector2(28.f, 12.f) / 64.f, Vector2(28.f, 0.f) / 64.f,
 		// LeftLegTop
-		Vector2(20.f, 16.f) / 64.f, Vector2(24.f, 16.f) / 64.f, Vector2(24.f, 12.f) / 64.f, Vector2(20.f, 12.f) / 64.f,
+		Vector2(20.f, 12.f) / 64.f, Vector2(20.f, 16.f) / 64.f, Vector2(24.f, 16.f) / 64.f, Vector2(24.f, 12.f) / 64.f,
 		// LeftLegBottom
-		Vector2(24.f, 16.f) / 64.f, Vector2(28.f, 16.f) / 64.f, Vector2(28.f, 12.f) / 64.f, Vector2(24.f, 12.f) / 64.f,
+		Vector2(24.f, 12.f) / 64.f, Vector2(24.f, 16.f) / 64.f, Vector2(28.f, 16.f) / 64.f, Vector2(28.f, 12.f) / 64.f,
 		// RightLegRight
-		Vector2(0.f, 32.f) / 64.f, Vector2(4.f, 32.f) / 64.f, Vector2(4.f, 44.f) / 64.f, Vector2(0.f, 44.f) / 64.f,
+		Vector2(0.f, 32.f) / 64.f, Vector2(0.f, 44.f) / 64.f, Vector2(4.f, 44.f) / 64.f, Vector2(4.f, 32.f) / 64.f,
 		// RightLegFront
 		Vector2(4.f, 32.f) / 64.f, Vector2(4.f, 44.f) / 64.f, Vector2(8.f, 44.f) / 64.f, Vector2(8.f, 32.f) / 64.f,
 		// RightLegBack
-		Vector2(12.f, 32.f) / 64.f, Vector2(12.f, 44.f) / 64.f, Vector2(8.f, 44.f) / 64.f, Vector2(8.f, 32.f) / 64.f,
+		Vector2(12.f, 32.f) / 64.f, Vector2(12.f, 44.f) / 64.f, Vector2(16.f, 44.f) / 64.f, Vector2(16.f, 32.f) / 64.f,
 		// RightLegLeft
-		Vector2(16.f, 32.f) / 64.f, Vector2(12.f, 32.f) / 64.f, Vector2(12.f, 44.f) / 64.f, Vector2(16.f, 44.f) / 64.f,
+		Vector2(8.f, 32.f) / 64.f, Vector2(8.f, 44.f) / 64.f, Vector2(12.f, 44.f) / 64.f, Vector2(12.f, 32.f) / 64.f,
 		// RightLegTop
-		Vector2(4.f, 48.f) / 64.f, Vector2(8.f, 48.f) / 64.f, Vector2(8.f, 44.f) / 64.f, Vector2(4.f, 44.f) / 64.f,
+		Vector2(4.f, 44.f) / 64.f, Vector2(4.f, 48.f) / 64.f, Vector2(8.f, 48.f) / 64.f, Vector2(8.f, 44.f) / 64.f,
 		// RightLegBottom
-		Vector2(8.f, 48.f) / 64.f, Vector2(12.f, 48.f) / 64.f, Vector2(12.f, 44.f) / 64.f, Vector2(8.f, 44.f) / 64.f
+		Vector2(8.f, 44.f) / 64.f, Vector2(8.f, 48.f) / 64.f, Vector2(12.f, 48.f) / 64.f, Vector2(12.f, 44.f) / 64.f
 	};
 
 	// 캐릭터 스켈레탈 메시 설정
@@ -222,7 +221,7 @@ bool GameEngine::LoadResources()
 
 	characterMesh.CalculateBounds();
 
-	// 화살표 메시 (기즈모 용)
+	// 화살표 메시 (본의 표시 용도)
 	Mesh& arrow = CreateMesh(GameEngine::ArrowMesh);
 	arrow.GetVertices().resize(arrowPositions.size());
 	arrow.GetIndices().resize(arrowIndice.size());
@@ -256,9 +255,9 @@ bool GameEngine::LoadResources()
 		}
 	}
 
-	// 텍스처 로딩
-	Texture& baseTexture = CreateTexture(GameEngine::BaseTexture, GameEngine::SteveTexturePath);
-	assert(baseTexture.IsIntialized());
+	// 텍스쳐 로딩
+	Texture& diffuseTexture = CreateTexture(GameEngine::BaseTexture, GameEngine::CharacterTexturePath);
+	assert(diffuseTexture.IsIntialized());
 
 	return true;
 }

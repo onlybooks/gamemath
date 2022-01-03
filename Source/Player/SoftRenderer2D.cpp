@@ -92,10 +92,10 @@ void SoftRenderer::Update2D(float InDeltaSeconds)
     TransformComponent& transform = goPlayer.GetTransform();
 
     // 입력에 따른 플레이어 위치와 크기의 변경
-    transform.AddPosition(Vector2(input.GetAxis(InputAxis::XAxis), input.GetAxis(InputAxis::YAxis)).GetNormalize() * moveSpeed * InDeltaSeconds);
     float newScale = Math::Clamp(transform.GetScale().X + scaleSpeed * input.GetAxis(InputAxis::ZAxis) * InDeltaSeconds, scaleMin, scaleMax);
     transform.SetScale(Vector2::One * newScale);
-    transform.AddRotation(input.GetAxis(InputAxis::WAxis) * rotateSpeed * InDeltaSeconds);
+    transform.AddRotation(input.GetAxis(InputAxis::XAxis) * rotateSpeed * InDeltaSeconds);
+    transform.AddPosition(transform.GetLocalY() * input.GetAxis(InputAxis::YAxis) * moveSpeed * InDeltaSeconds);
 }
 
 // 렌더링 로직을 담당하는 함수
@@ -104,7 +104,6 @@ void SoftRenderer::Render2D()
     // 렌더링 로직에서 사용하는 모듈 내 주요 레퍼런스
     auto& r = GetRenderer();
     const auto& g = Get2DGameEngine();
-    const auto& texture = g.GetTexture(GameEngine::BaseTexture);
 
     // 배경에 격자 그리기
     DrawGizmo2D();
