@@ -295,16 +295,16 @@ void SoftRenderer::DrawMesh3D(const Mesh& InMesh, const Matrix4x4& InMatrix, con
 					const Transform& t = b.GetTransform().GetWorldTransform();  // 모델링 공간
 					const Transform& bindPose = b.GetBindPose(); // 모델링 공간
 
-					// 바인드포즈를 중심으로 본의 로컬 공간을 계산
+					// BindPose 공간을 중심으로 Bone의 로컬 공간을 계산
 					Transform boneLocal = t.WorldToLocal(bindPose);
 
-					// 점의 위치를 바인드포즈를 중심으로 재해석
+					// BindPose 공간으로 점을 변화
 					Vector3 localPosition = bindPose.WorldToLocalVector(vertices[vi].Position.ToVector3());
 
-					// 점에 본의 로컬 트랜스폼을 적용해 바인드포즈로부터 변화된 값을 반영
+					// BindPose 공간에서의 점의 최종 위치
 					Vector3 skinnedLocalPosition = boneLocal.GetMatrix() * localPosition;
 
-					// 점의 위치를 모델링 공간으로 다시 변경
+					// 모델링 공간으로 다시 변경
 					Vector3 skinnedWorldPosition = bindPose.GetMatrix() * skinnedLocalPosition;
 
 					// 가중치를 반영한 후 최종 위치에 누적
