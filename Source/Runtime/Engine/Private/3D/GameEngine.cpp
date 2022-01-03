@@ -8,7 +8,7 @@ const std::size_t GameEngine::PlaneMesh = std::hash<std::string>()("SM_Plane");
 
 // 텍스처
 const std::size_t GameEngine::BaseTexture = std::hash<std::string>()("Base");
-const std::string GameEngine::SteveTexturePath("Steve.png");
+const std::string GameEngine::CharacterTexturePath("CKMan.png");
 
 struct GameObjectCompare
 {
@@ -102,7 +102,7 @@ bool GameEngine::LoadResources()
 	planeMesh.CalculateBounds();
 
 	// 텍스쳐 로딩
-	Texture& diffuseTexture = CreateTexture(GameEngine::BaseTexture, GameEngine::SteveTexturePath);
+	Texture& diffuseTexture = CreateTexture(GameEngine::BaseTexture, GameEngine::CharacterTexturePath);
 	assert(diffuseTexture.IsIntialized());
 
 	return true;
