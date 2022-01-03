@@ -7,7 +7,7 @@ const std::size_t GameEngine::CubeMesh = std::hash<std::string>()("SM_Cube");;
 
 // 텍스처
 const std::size_t GameEngine::BaseTexture = std::hash<std::string>()("Base");
-const std::string GameEngine::SteveTexturePath("Steve.png");
+const std::string GameEngine::CharacterTexturePath("CKMan.png");
 
 struct GameObjectCompare
 {
@@ -64,7 +64,7 @@ bool GameEngine::LoadResources()
 	std::transform(cubeMeshIndice.begin(), cubeMeshIndice.end(), std::back_inserter(i), [&](auto& p) { return p; });
 
 	// 텍스쳐 로딩
-	Texture& diffuseTexture = CreateTexture(GameEngine::BaseTexture, GameEngine::SteveTexturePath);
+	Texture& diffuseTexture = CreateTexture(GameEngine::BaseTexture, GameEngine::CharacterTexturePath);
 	assert(diffuseTexture.IsIntialized());
 
 	return true;
