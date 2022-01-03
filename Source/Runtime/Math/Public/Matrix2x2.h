@@ -24,7 +24,7 @@ public:
 
 	// ¸â¹öÇÔ¼ö 
 	FORCEINLINE void SetIdentity();
-	FORCEINLINE Matrix2x2 Tranpose() const;
+	FORCEINLINE Matrix2x2 Transpose() const;
 
 	std::vector<std::string> ToStrings() const;
 
@@ -41,7 +41,7 @@ FORCEINLINE void Matrix2x2::SetIdentity()
 	*this = Matrix2x2::Identity;
 }
 
-FORCEINLINE Matrix2x2 Matrix2x2::Tranpose() const
+FORCEINLINE Matrix2x2 Matrix2x2::Transpose() const
 {
 	return Matrix2x2(
 		Vector2(Cols[0].X, Cols[1].X),
@@ -71,7 +71,7 @@ FORCEINLINE Matrix2x2 Matrix2x2::operator*(float InScalar) const
 
 FORCEINLINE Matrix2x2 Matrix2x2::operator*(const Matrix2x2 &InMatrix) const
 {
-	Matrix2x2 transposedMatrix = Tranpose();
+	Matrix2x2 transposedMatrix = Transpose();
 	return Matrix2x2(
 		Vector2(transposedMatrix[0].Dot(InMatrix[0]), transposedMatrix[1].Dot(InMatrix[0])),
 		Vector2(transposedMatrix[0].Dot(InMatrix[1]), transposedMatrix[1].Dot(InMatrix[1]))
@@ -80,7 +80,7 @@ FORCEINLINE Matrix2x2 Matrix2x2::operator*(const Matrix2x2 &InMatrix) const
 
 FORCEINLINE Vector2 Matrix2x2::operator*(const Vector2& InVector) const
 {
-	Matrix2x2 transposedMatrix = Tranpose();
+	Matrix2x2 transposedMatrix = Transpose();
 	return Vector2(
 		transposedMatrix[0].Dot(InVector),
 		transposedMatrix[1].Dot(InVector)
