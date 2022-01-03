@@ -7,7 +7,7 @@ const std::size_t GameEngine::QuadMesh = std::hash<std::string>()("SM_Quad");
 
 // 텍스처
 const std::size_t GameEngine::BaseTexture = std::hash<std::string>()("Base");
-const std::string GameEngine::SteveTexturePath("Steve.png");
+const std::string GameEngine::CharacterTexturePath("CKMan.png");
 
 struct GameObjectCompare
 {
@@ -97,7 +97,7 @@ bool GameEngine::LoadResources()
 	quadMesh.CalculateBounds();
 
 	// 텍스쳐 로딩
-	Texture& diffuseTexture = CreateTexture(GameEngine::BaseTexture, GameEngine::SteveTexturePath);
+	Texture& diffuseTexture = CreateTexture(GameEngine::BaseTexture, GameEngine::CharacterTexturePath);
 	assert(diffuseTexture.IsIntialized());
 
 	return true;
