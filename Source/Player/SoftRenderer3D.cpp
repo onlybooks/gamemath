@@ -200,7 +200,7 @@ void SoftRenderer::Render3D()
 		LinearColor finalColor = gameObject.GetColor();
 
 		// 최종 변환 행렬로부터 평면의 방정식과 절두체 생성
-		Matrix4x4 finalTranposedMatrix = finalMatrix.Tranpose();
+		Matrix4x4 finalTranposedMatrix = finalMatrix.Transpose();
 		std::array<Plane, 6> frustumPlanesFromMatrix = {
 			Plane(-(finalTranposedMatrix[3] - finalTranposedMatrix[1])), // up
 			Plane(-(finalTranposedMatrix[3] + finalTranposedMatrix[1])), // bottom
@@ -295,16 +295,16 @@ void SoftRenderer::DrawMesh3D(const Mesh& InMesh, const Matrix4x4& InMatrix, con
 					const Transform& t = b.GetTransform().GetWorldTransform();  // 모델링 공간
 					const Transform& bindPose = b.GetBindPose(); // 모델링 공간
 
-					// BindPose 공간을 중심으로 Bone의 로컬 공간을 계산
+					// 바인드포즈를 중심으로 본의 로컬 공간을 계산
 					Transform boneLocal = t.WorldToLocal(bindPose);
 
-					// BindPose 공간으로 점을 변화
+					// 점의 위치를 바인드포즈를 중심으로 재해석
 					Vector3 localPosition = bindPose.WorldToLocalVector(vertices[vi].Position.ToVector3());
 
-					// BindPose 공간에서의 점의 최종 위치
+					// 점에 본의 로컬 트랜스폼을 적용해 바인드포즈로부터 변화된 값을 반영
 					Vector3 skinnedLocalPosition = boneLocal.GetMatrix() * localPosition;
 
-					// 모델링 공간으로 다시 변경
+					// 점의 위치를 모델링 공간으로 다시 변경
 					Vector3 skinnedWorldPosition = bindPose.GetMatrix() * skinnedLocalPosition;
 
 					// 가중치를 반영한 후 최종 위치에 누적
@@ -476,12 +476,8 @@ void SoftRenderer::DrawTriangle3D(std::vector<Vertex3D>& InVertices, const Linea
 
 				if (((s >= 0.f) && (s <= 1.f)) && ((t >= 0.f) && (t <= 1.f)) && ((oneMinusST >= 0.f) && (oneMinusST <= 1.f)))
 				{
-					// 투영보정에 사용할 공통 분모
-					float z = invZ0 * oneMinusST + invZ1 * s + invZ2 * t;
-					float invZ = 1.f / z;
-
-					// 깊이 버퍼 테스팅
-					float newDepth = (InVertices[0].Position.Z * oneMinusST * invZ0 + InVertices[1].Position.Z * s * invZ1 + InVertices[2].Position.Z * t * invZ2) * invZ;
+					// 깊이 테스팅
+					float newDepth = InVertices[0].Position.Z * oneMinusST + InVertices[1].Position.Z * s + InVertices[2].Position.Z * t;
 					float prevDepth = r.GetDepthBufferValue(fragment);
 					if (newDepth < prevDepth)
 					{
@@ -496,6 +492,7 @@ void SoftRenderer::DrawTriangle3D(std::vector<Vertex3D>& InVertices, const Linea
 
 					if (IsDepthBufferDrawing())
 					{
+						// 카메라로부터의 거리에 따라 균일하게 증감하는 흑백 값으로 변환
 						float grayScale = (invZ - n) / (f - n);
 
 						// 뎁스 버퍼 그리기
