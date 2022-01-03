@@ -13,7 +13,7 @@ const std::string GameEngine::LeftLegBone("LeftLegBone");
 const std::string GameEngine::RightLegBone("RightLegBone");
 
 // ¸Þ½Ã
-const std::size_t GameEngine::CharacterMesh = std::hash<std::string>()("SK_Steve");
+const std::size_t GameEngine::CharacterMesh = std::hash<std::string>()("SK_CKMan");
 const std::size_t GameEngine::ArrowMesh = std::hash<std::string>()("SM_Arrow");
 const std::size_t GameEngine::PlaneMesh = std::hash<std::string>()("SM_Plane");
 
