@@ -31,7 +31,7 @@ public:
 	// ¸â¹öÇÔ¼ö 
 	FORCEINLINE Matrix3x3 ToMatrix3x3() const;
 	FORCEINLINE void SetIdentity();
-	FORCEINLINE constexpr Matrix4x4 Tranpose() const;
+	FORCEINLINE constexpr Matrix4x4 Transpose() const;
 
 	std::vector<std::string> ToStrings() const;
 
@@ -48,7 +48,7 @@ FORCEINLINE void Matrix4x4::SetIdentity()
 	*this = Matrix4x4::Identity;
 }
 
-FORCEINLINE constexpr Matrix4x4 Matrix4x4::Tranpose() const
+FORCEINLINE constexpr Matrix4x4 Matrix4x4::Transpose() const
 {
 	return Matrix4x4(
 		Vector4(Cols[0].X, Cols[1].X, Cols[2].X, Cols[3].X),
@@ -82,7 +82,7 @@ FORCEINLINE constexpr Matrix4x4 Matrix4x4::operator*(float InScalar) const
 
 FORCEINLINE constexpr Matrix4x4 Matrix4x4::operator*(const Matrix4x4 &InMatrix) const
 {
-	Matrix4x4 transposedMatrix = Tranpose();
+	Matrix4x4 transposedMatrix = Transpose();
 	return Matrix4x4(
 		Vector4(transposedMatrix[0].Dot(InMatrix[0]), transposedMatrix[1].Dot(InMatrix[0]), transposedMatrix[2].Dot(InMatrix[0]), transposedMatrix[3].Dot(InMatrix[0])),
 		Vector4(transposedMatrix[0].Dot(InMatrix[1]), transposedMatrix[1].Dot(InMatrix[1]), transposedMatrix[2].Dot(InMatrix[1]), transposedMatrix[3].Dot(InMatrix[1])),
@@ -93,7 +93,7 @@ FORCEINLINE constexpr Matrix4x4 Matrix4x4::operator*(const Matrix4x4 &InMatrix) 
 
 FORCEINLINE constexpr Vector4 Matrix4x4::operator*(const Vector4& InVector) const
 {
-	Matrix4x4 transposedMatrix = Tranpose();
+	Matrix4x4 transposedMatrix = Transpose();
 	return Vector4(
 		transposedMatrix[0].Dot(InVector),
 		transposedMatrix[1].Dot(InVector),

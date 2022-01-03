@@ -47,7 +47,7 @@ void SoftRenderer::LoadScene3D()
 	goPlayer.SetMesh(GameEngine::CubeMesh);
 	goPlayer.GetTransform().SetPosition(Vector3::Zero);
 	goPlayer.GetTransform().SetScale(Vector3::One * playerScale);
-	goPlayer.GetTransform().SetRotation(Rotator(0.f, 0.f, 0.f));
+	goPlayer.GetTransform().SetRotation(Rotator(0.f, 45.f, -60.f));
 	goPlayer.SetColor(LinearColor::Blue);
 
 	// 카메라 설정
