@@ -114,6 +114,15 @@ void SoftRenderer::Render2D()
 		}
 	}
 
+	// 각 값을 초기화한 후 색상을 증가시키면서 점에 대응
+	rad = 0.f;
+	for (auto const& v : hearts)
+	{
+		hsv.H = rad / Math::TwoPI;
+		r.DrawPoint(v, hsv.ToLinearColor());
+		rad += increment;
+	}
+
 	// 현재 위치, 크기, 각도를 화면에 출력
 	r.PushStatisticText(std::string("Position : ") + currentPosition.ToString());
 	r.PushStatisticText(std::string("Scale : ") + std::to_string(currentScale));
