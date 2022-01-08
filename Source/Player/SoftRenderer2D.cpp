@@ -53,6 +53,7 @@ void SoftRenderer::LoadScene2D()
 }
 
 // 게임 로직과 렌더링 로직이 공유하는 변수
+float currentShear = 0.f;
 float currentScale = 10.f;
 float currentDegree = 0.f;
 
@@ -64,15 +65,18 @@ void SoftRenderer::Update2D(float InDeltaSeconds)
 	const InputManager& input = g.GetInputManager();
 
 	// 게임 로직의 로컬 변수
+	static float shearSpeed = 2.f;
 	static float scaleMin = 5.f;
 	static float scaleMax = 20.f;
 	static float scaleSpeed = 20.f;
 	static float rotateSpeed = 180.f;
 
+	float deltaShear = input.GetAxis(InputAxis::XAxis) * shearSpeed * InDeltaSeconds;
 	float deltaScale = input.GetAxis(InputAxis::ZAxis) * scaleSpeed * InDeltaSeconds;
 	float deltaDegree = input.GetAxis(InputAxis::WAxis) * rotateSpeed * InDeltaSeconds;
 
 	// 물체의 최종 상태 설정
+	currentShear += deltaShear;
 	currentScale = Math::Clamp(currentScale + deltaScale, scaleMin, scaleMax);
 	currentDegree += deltaDegree;
 }
@@ -92,6 +96,7 @@ void SoftRenderer::Render2D()
 	static float increment = 0.001f;
 	static std::vector<Vector2> hearts;
 	HSVColor hsv(0.f, 1.f, 0.85f);
+	static Vector2 pivot(200.f, 0.f);
 
 	// 하트를 구성하는 점 생성
 	if (hearts.empty())
@@ -109,6 +114,23 @@ void SoftRenderer::Render2D()
 		}
 	}
 
+	rad = 0.f;
+	for (auto const& v : hearts)
+	{
+		// 왼쪽 하트
+		r.DrawPoint(v - pivot, hsv.ToLinearColor());
+
+		// 오른쪽 하트
+		r.DrawPoint(v + pivot, hsv.ToLinearColor());
+
+		hsv.H = rad / Math::TwoPI;
+		rad += increment;
+	}
+
+	// 현재 밀기, 스케일, 회전각을 화면에 출력
+	r.PushStatisticText(std::string("Shear : ") + std::to_string(currentShear));
+	r.PushStatisticText(std::string("Scale : ") + std::to_string(currentScale));
+	r.PushStatisticText(std::string("Degree : ") + std::to_string(currentDegree));
 }
 
 // 메시를 그리는 함수
