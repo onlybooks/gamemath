@@ -155,14 +155,14 @@ void SoftRenderer::Render3D()
 		LinearColor finalColor = gameObject.GetColor();
 
 		// 최종 변환 행렬로부터 평면의 방정식과 절두체 생성
-		Matrix4x4 finalTranposedMatrix = finalMatrix.Transpose();
+		Matrix4x4 finalTransposedMatrix = finalMatrix.Transpose();
 		std::array<Plane, 6> frustumPlanesFromMatrix = {
-			Plane(-(finalTranposedMatrix[3] - finalTranposedMatrix[1])), // up
-			Plane(-(finalTranposedMatrix[3] + finalTranposedMatrix[1])), // bottom
-			Plane(-(finalTranposedMatrix[3] - finalTranposedMatrix[0])), // right
-			Plane(-(finalTranposedMatrix[3] + finalTranposedMatrix[0])), // left 
-			Plane(-(finalTranposedMatrix[3] - finalTranposedMatrix[2])),  // far
-			Plane(-(finalTranposedMatrix[3] + finalTranposedMatrix[2])), // near
+			Plane(-(finalTransposedMatrix[3] - finalTransposedMatrix[1])), // up
+			Plane(-(finalTransposedMatrix[3] + finalTransposedMatrix[1])), // bottom
+			Plane(-(finalTransposedMatrix[3] - finalTransposedMatrix[0])), // right
+			Plane(-(finalTransposedMatrix[3] + finalTransposedMatrix[0])), // left 
+			Plane(-(finalTransposedMatrix[3] - finalTransposedMatrix[2])),  // far
+			Plane(-(finalTransposedMatrix[3] + finalTransposedMatrix[2])), // near
 		};
 		Frustum frustumFromMatrix(frustumPlanesFromMatrix);
 
