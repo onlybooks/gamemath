@@ -82,7 +82,27 @@ void SoftRenderer::Render2D()
 	DrawGizmo2D();
 
 	// 렌더링 로직의 로컬 변수
+	static float halfSize = 100.f;
+	static std::vector<Vector2> squares;
 
+	// 사각형을 구성하는 점을 생성
+	if (squares.empty())
+	{
+		for (float x = -halfSize; x <= halfSize; x += 0.25f)
+		{
+			for (float y = -halfSize; y <= halfSize; y += 0.25f)
+			{
+				squares.push_back(Vector2(x, y));
+			}
+		}
+	}
+
+	// 사각형 그리기
+	HSVColor hsv(0.f, 1.f, 0.85f);
+	for (auto const& v : squares)
+	{
+		r.DrawPoint(v, hsv.ToLinearColor());
+	}
 
 	// 현재 각도를 화면에 출력
 	r.PushStatisticText(std::string("Degree : ") + std::to_string(currentDegree));
