@@ -168,7 +168,8 @@ void SoftRenderer::DrawMesh3D(const Mesh& InMesh, const Matrix4x4& InMatrix, con
 	// 정점 변환 진행
 	for (Vertex3D& v : vertices)
 	{
-		Vector3 result = v.Position.ToVector3() * InScale;
+		Vector3 u = v.Position.ToVector3();
+		Vector3 result = u * InScale;
 		v.Position = InMatrix * Vector4(result);
 	}
 
