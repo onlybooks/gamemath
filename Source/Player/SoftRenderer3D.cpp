@@ -166,7 +166,11 @@ void SoftRenderer::DrawMesh3D(const Mesh& InMesh, const Matrix4x4& InMatrix, con
 	}
 
 	// 정점 변환 진행
-
+	for (Vertex3D& v : vertices)
+	{
+		Vector3 result = v.Position.ToVector3() * InScale;
+		v.Position = InMatrix * Vector4(result);
+	}
 
 	// 삼각형 별로 그리기
 	for (int ti = 0; ti < triangleCount; ++ti)
