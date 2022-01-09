@@ -45,7 +45,7 @@ void SoftRenderer::LoadScene3D()
 	// 플레이어 설정
 	GameObject& goPlayer = g.CreateNewGameObject(PlayerGo);
 	goPlayer.SetMesh(GameEngine::CubeMesh);
-	goPlayer.GetTransform().SetPosition(Vector3::Zero);
+	goPlayer.GetTransform().SetPosition(Vector3(-360.f, -250.f, 0.f));
 	goPlayer.GetTransform().SetScale(Vector3::One * playerScale);
 	goPlayer.GetTransform().SetRotation(Rotator(0.f, 0.f, 0.f));
 	goPlayer.SetColor(LinearColor::Blue);
@@ -125,10 +125,11 @@ void SoftRenderer::Render3D()
 		// 메시 그리기
 		DrawMesh3D(mesh, finalMatrix, gameObject.GetColor());
 
-		// 뷰 공간에서의 플레이어 위치를 화면에 표시
+		// 월드 공간과 뷰 공간에서의 플레이어 위치를 화면에 표시
 		if (gameObject == PlayerGo)
 		{
 			Vector3 viewPosition = vMatrix * transform.GetPosition();
+			r.PushStatisticText("World: " + transform.GetPosition().ToString());
 			r.PushStatisticText("View : " + viewPosition.ToString());
 		}
 	}
