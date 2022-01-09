@@ -112,11 +112,11 @@ void SoftRenderer::Render3D()
 		// 메시 그리기
 		DrawMesh3D(mesh, finalMatrix, gameObject.GetColor());
 
-		// 뷰 공간에서의 플레이어 위치를 화면에 표시
+		// 월드 공간과 뷰 공간에서의 플레이어 위치를 화면에 표시
 		if (gameObject == PlayerGo)
 		{
 			Vector3 viewPosition = vMatrix * transform.GetPosition();
-			r.PushStatisticText("Player : " + transform.GetPosition().ToString());
+			r.PushStatisticText("World: " + transform.GetPosition().ToString());
 			r.PushStatisticText("View : " + viewPosition.ToString());
 		}
 	}
