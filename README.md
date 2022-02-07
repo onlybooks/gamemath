@@ -1,11 +1,14 @@
-# CKSoftRenderer
+# 이득우의 게임수학 예제
+<a href="https://www.onlybook.co.kr/entry/gamemath"><img src="https://github.com/onlybooks/gamemath/blob/main/Document/책그림.jpg" align="center" width="300px" ></a>
 
-교육적 목적으로 고안된 소프트렌더러 프로젝트입니다. 
-
+이득우의 게임 수학에 사용되는 예제 CK소프트렌더러 프로젝트입니다. 
 브랜치를 사용해 단계별로 코드가 구현되어 있으니 책의 가이드에 따라 올바른 브랜치를 다운받기 바랍니다. 
 
+## 전체 로드맵
+![로드맵](https://github.com/onlybooks/gamemath/blob/main/Document/로드맵.png "로드맵")
+
 ## 요구사항
-- 비주얼 스튜디오 2019 커뮤니티 혹은 비주얼 스튜디오 2022 커뮤니티
+- 비주얼 스튜디오 2019 혹은 비주얼 스튜디오 2022
 - CMake 3.1버젼 이상 ( https://cmake.org/download/ ) 
 - 본 프로젝트는 윈도우만 지원합니다. 
 
