@@ -1,4 +1,4 @@
-# 이득우의 게임수학 예제
+# <이득우의 게임 수학> 예제
 <p align="center">
 <a href="https://www.onlybook.co.kr/entry/gamemath"><img src="https://github.com/onlybooks/gamemath/blob/main/Document/책그림.jpg" align="center" width="400px" ></a>
 </p>
