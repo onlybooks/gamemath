@@ -238,7 +238,7 @@ void SoftRenderer::DrawTriangle2D(std::vector<DD::Vertex2D>& InVertices, const L
         Vector2 u = InVertices[1].Position - InVertices[0].Position;
         Vector2 v = InVertices[2].Position - InVertices[0].Position;
 
-        // 공통 분모 값 ( uu * vv - uv * uv )
+        // 공통 분모 값 ( uv * uv - uu * vv )
         float udotv = u.Dot(v);
         float vdotv = v.Dot(v);
         float udotu = u.Dot(u);
