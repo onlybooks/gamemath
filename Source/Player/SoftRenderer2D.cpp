@@ -136,9 +136,9 @@ void SoftRenderer::Render2D()
 	for (auto const& v : hearts)
 	{
 		// 1. 점에 행렬을 적용한다.
-		Vector2 trasnformedV = finalMatrix * v;
+		Vector2 transformedV = finalMatrix * v;
 		// 2. 변환된 점을 이동한다.
-		Vector2 translatedV = trasnformedV + currentPosition;
+		Vector2 translatedV = transformedV + currentPosition;
 
 		hsv.H = rad / Math::TwoPI;
 		r.DrawPoint(translatedV, hsv.ToLinearColor());
