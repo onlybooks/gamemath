@@ -19,11 +19,15 @@ public:
 	// 카메라 값을 가져오는 함수
 	float GetFOV() const { return _FOV; }
 	const ScreenPoint& GetViewportSize() const { return _ViewportSize; }
+	float GetNearZ() const { return _NearZ; }
+	float GetFarZ() const { return _FarZ; }
 
 	// 카메라 값을 설정하는 함수
 	void SetFOV(float InFOV) { _FOV = InFOV; }
 	void SetViewportSize(const ScreenPoint& InViewportSize) { _ViewportSize = InViewportSize; }
 	void SetLookAtRotation(const Vector3& InTargetPosition, const Vector3& InUp = Vector3::UnitY);
+	void SetNearZ(float InNearZ) { _NearZ = InNearZ; }
+	void SetFarZ(float InFarZ) { _FarZ = InFarZ; }
 
 	// 행렬 생성
 	FORCEINLINE void GetViewAxes(Vector3& OutViewX, Vector3& OutViewY, Vector3& OutViewZ) const;
