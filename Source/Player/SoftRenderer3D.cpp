@@ -149,7 +149,7 @@ void SoftRenderer::Render3D()
 	};
 
 	// 절두체 선언
-	Frustum frustumInView(frustumPlanes);
+	Frustum frustumFromMatrix(frustumPlanes);
 
 	// 절두체 컬링 테스트를 위한 통계 변수
 	size_t totalObjects = g.GetScene().size();
@@ -170,7 +170,7 @@ void SoftRenderer::Render3D()
 
 		// 절두체 컬링 구현
 		Vector4 viewPos = vMatrix * Vector4(transform.GetPosition());
-		if (frustumInView.CheckBound(viewPos.ToVector3()) == BoundCheckResult::Outside)
+		if (frustumFromMatrix.CheckBound(viewPos.ToVector3()) == BoundCheckResult::Outside)
 		{
 			// 그리지 않고 건너뜀
 			culledObjects++;
