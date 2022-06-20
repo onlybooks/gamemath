@@ -1,11 +1,20 @@
-# CKSoftRenderer
-
-교육적 목적으로 고안된 소프트렌더러 프로젝트입니다. 
-
+# <이득우의 게임 수학> 예제
+<p align="center">
+<a href="https://www.onlybook.co.kr/entry/gamemath"><img src="https://github.com/onlybooks/gamemath/blob/main/Document/책그림.jpg" align="center" width="400px" ></a>
+</p>
+  
+이득우의 게임 수학에 사용되는 예제 CK소프트렌더러 프로젝트입니다. 
 브랜치를 사용해 단계별로 코드가 구현되어 있으니 책의 가이드에 따라 올바른 브랜치를 다운받기 바랍니다. 
 
+## 전체 로드맵
+![로드맵](https://github.com/onlybooks/gamemath/blob/main/Document/로드맵.png "로드맵")
+
+<p align="center">
+<a href="https://ideugu.notion.site/05b87813fe644590bf0a09d5e7030909"> [단계별 예제 확인하기] <a>
+</p>
+  
 ## 요구사항
-- 비주얼 스튜디오 2019 커뮤니티 혹은 비주얼 스튜디오 2022 커뮤니티
+- 비주얼 스튜디오 2019 혹은 비주얼 스튜디오 2022
 - CMake 3.1버젼 이상 ( https://cmake.org/download/ ) 
 - 본 프로젝트는 윈도우만 지원합니다. 
 
@@ -23,15 +32,14 @@
 | F10 | 2D 엔진과 3D 엔진의 변경 |
 | 왼쪽,오른쪽 화살표 키 | 캐릭터 좌우 회전 |
 | 위,아래 화살표 키 | 캐릭터 전후 이동 |
-| 페이지 업,다운 | 카메라 FOV 조절 |
+| 홈(Home),엔드(End) | 카메라 FOV 조절 |
 
 ## 일반 모드
 텍스쳐를 매핑해 렌더링합니다. 기즈모는 표시되나 본은 표시되지 않습니다. 
 
 구동이 느린 경우 Release 모드로 컴파일해 실행하기 바랍니다.
 
-![일반 모드](https://github.com/onlybooks/gamemath/blob/main/Document/Normal.png "일반 모드")
-
+<img src="https://github.com/onlybooks/gamemath/blob/main/Document/Samples/17-3c.gif">
 
 ## 와이어프레임 모드
 선을 사용해 외곽선만 렌더링합니다. 기즈모와 본을 모두 표시해줍니다. 
