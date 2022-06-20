@@ -96,7 +96,7 @@ FORCEINLINE constexpr Transform Transform::LocalToWorld(const Transform& InParen
 	Transform result;
 	result.SetScale(InParentWorldTransform.GetScale() * GetScale());
 	result.SetRotation(InParentWorldTransform.GetRotation() * GetRotation());
-	result.SetPosition(InParentWorldTransform.GetPosition() + InParentWorldTransform.GetScale() * (InParentWorldTransform.GetRotation() * GetPosition()));
+	result.SetPosition(InParentWorldTransform.GetPosition() + InParentWorldTransform.GetRotation() * (InParentWorldTransform.GetScale() * GetPosition()));
 	return result;
 }
 
