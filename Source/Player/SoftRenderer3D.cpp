@@ -291,6 +291,7 @@ void SoftRenderer::DrawMesh3D(const Mesh& InMesh, const Matrix4x4& InMatrix, con
 				std::string boneName = w.Bones[wi];
 				if (InMesh.HasBone(boneName))
 				{
+					/** 책의 원문 코드
 					const Bone& b = InMesh.GetBone(boneName);
 					const Transform& t = b.GetTransform().GetWorldTransform();  // 모델링 공간
 					const Transform& bindPose = b.GetBindPose(); // 모델링 공간
@@ -309,6 +310,14 @@ void SoftRenderer::DrawMesh3D(const Mesh& InMesh, const Matrix4x4& InMatrix, con
 
 					// 가중치를 반영한 후 최종 위치에 누적
 					totalPosition += Vector4(skinnedWorldPosition, true) * w.Values[wi];
+					*/
+
+					// 불필요한 중간 계산을 정리한 간결한 코드
+					const Transform& bindPoseTransform = InMesh.GetBindPose(boneName);
+					const Transform& boneTransform = InMesh.GetBone(boneName).GetTransform().GetWorldTransform();
+					Vector4 localPosition = boneTransform.GetMatrix() * bindPoseTransform.Inverse().GetMatrix() * vertices[vi].Position;
+
+					totalPosition += localPosition * w.Values[wi];
 				}
 			}
 
