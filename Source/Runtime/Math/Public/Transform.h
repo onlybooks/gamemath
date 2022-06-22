@@ -85,7 +85,7 @@ FORCEINLINE constexpr Transform Transform::Inverse() const
 	Transform result;
 	result.SetScale(reciprocalScale);
 	result.SetRotation(Rotation.Inverse());
-	result.SetPosition(result.GetRotation() * (result.GetScale() * - Position));
+	result.SetPosition(result.GetScale() * (result.GetRotation() * -Position));
 	return result;
 }
 
