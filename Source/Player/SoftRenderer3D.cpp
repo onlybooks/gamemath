@@ -56,6 +56,8 @@ void SoftRenderer::LoadScene3D()
 }
 
 // 실습을 위한 변수
+Vector3 leftBonePosition;
+Vector3 rightBonePosition;
 
 // 게임 로직을 담당하는 함수
 void SoftRenderer::Update3D(float InDeltaSeconds)
@@ -82,7 +84,38 @@ void SoftRenderer::LateUpdate3D(float InDeltaSeconds)
 	GameEngine& g = Get3DGameEngine();
 
 	// 애니메이션 로직의 로컬 변수
+	static float duration = 3.f;
+	static float elapsedTime = 0.f;
 
+	// 애니메이션을 위한 커브 생성 ( 0~1 SineWave )
+	elapsedTime = Math::Clamp(elapsedTime + InDeltaSeconds, 0.f, duration);
+	if (elapsedTime == duration)
+	{
+		elapsedTime = 0.f;
+	}
+	float sinParam = elapsedTime * Math::TwoPI / duration;
+	float sinWave = (sinf(sinParam) + 1.f) * 0.5f;
+
+	GameObject& goPlayer = g.GetGameObject(PlayerGo);
+	Mesh& m = g.GetMesh(goPlayer.GetMeshKey());
+	if (!m.IsSkinnedMesh())
+	{
+		return;
+	}
+
+	const std::string leftBoneName("left");
+	const std::string rightBoneName("right");
+	Transform& leftBoneTransform = m.GetBone(leftBoneName).GetTransform();
+	Transform& rightBoneTransform = m.GetBone(rightBoneName).GetTransform();
+
+	Vector3 deltaLeftPosition = Vector3::UnitX * -sinWave;
+	Vector3 deltaRightPosition = Vector3::UnitX * sinWave;
+
+	leftBonePosition = m.GetBindPose(leftBoneName).GetPosition() + deltaLeftPosition;
+	rightBonePosition = m.GetBindPose(rightBoneName).GetPosition() + deltaRightPosition;
+
+	leftBoneTransform.SetPosition(leftBonePosition);
+	rightBoneTransform.SetPosition(rightBonePosition);
 }
 
 // 렌더링 로직을 담당하는 함수
