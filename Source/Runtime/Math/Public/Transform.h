@@ -117,7 +117,7 @@ FORCEINLINE constexpr Vector3 Transform::WorldToLocalVector(const Vector3& InWor
 	// 현재 트랜스폼을 기준으로 월드 벡터를 로컬 벡터로 변환
 	Transform invTransform = Inverse();
 
-	return invTransform.GetPosition() + invTransform.GetRotation() * (invTransform.GetScale() * InWorldVector);
+	return invTransform.GetPosition() + invTransform.GetScale() * (invTransform.GetRotation() * InWorldVector);
 }
 
 }
