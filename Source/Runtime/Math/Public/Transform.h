@@ -108,16 +108,8 @@ FORCEINLINE constexpr Transform Transform::WorldToLocal(const Transform& InParen
 	Transform result;
 	result.SetScale(invParent.GetScale() * GetScale());
 	result.SetRotation(invParent.GetRotation() * GetRotation());
-	result.SetPosition(invParent.GetPosition() + (invParent.GetRotation() * (invParent.GetScale() * GetPosition())));
+	result.SetPosition(invParent.GetPosition() + (invParent.GetScale() * (invParent.GetRotation() * GetPosition())));
 	return result;
 }
-
-//FORCEINLINE constexpr Vector3 Transform::WorldToLocalVector(const Vector3& InWorldVector) const
-//{
-//	// 현재 트랜스폼을 기준으로 월드 벡터를 로컬 벡터로 변환
-//	Transform invTransform = Inverse();
-//
-//	return invTransform.GetPosition() + invTransform.GetScale() * (invTransform.GetRotation() * InWorldVector);
-//}
 
 }
