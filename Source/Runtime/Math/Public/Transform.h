@@ -55,7 +55,6 @@ public: // 트랜스폼 설정함수
 	FORCEINLINE constexpr Transform Inverse() const;
 	FORCEINLINE constexpr Transform LocalToWorld(const Transform& InParentWorldTransform) const;
 	FORCEINLINE constexpr Transform WorldToLocal(const Transform& InParentWorldTransform) const;
-	FORCEINLINE constexpr Vector3 WorldToLocalVector(const Vector3& InWorldVector) const;
 
 private: // 트랜스폼에 관련된 변수
 	Vector3 Position;
@@ -108,17 +107,8 @@ FORCEINLINE constexpr Transform Transform::WorldToLocal(const Transform& InParen
 	Transform result;
 	result.SetScale(invParent.GetScale() * GetScale());
 	result.SetRotation(invParent.GetRotation() * GetRotation());
-	result.SetPosition(invParent.GetPosition() + (invParent.GetRotation() * (invParent.GetScale() * GetPosition())));
+	result.SetPosition(invParent.GetPosition() + (invParent.GetScale() * (invParent.GetRotation() * GetPosition())));
 	return result;
 }
-
-// 안쓰는 함수 주석 처리
-//FORCEINLINE constexpr Vector3 Transform::WorldToLocalVector(const Vector3& InWorldVector) const
-//{
-//	// 현재 트랜스폼을 기준으로 월드 벡터를 로컬 벡터로 변환
-//	Transform invTransform = Inverse();
-//
-//	return invTransform.GetPosition() + invTransform.GetScale() * (invTransform.GetRotation() * InWorldVector);
-//}
 
 }
