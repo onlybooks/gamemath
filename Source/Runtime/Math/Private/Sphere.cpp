@@ -18,9 +18,11 @@ Sphere::Sphere(const std::vector<Vector3>& InVertices)
 
 	Center = sum / (float)cnt;
 	float distanceSquared = 0.f;
-	Radius = (*std::max_element(InVertices.begin(), InVertices.end(),
+	Center = sum / (float)cnt;
+	Vector3 farthestPoint = (*std::max_element(InVertices.begin(), InVertices.end(),
 		[&](Vector3 const& lhs, Vector3 const& rhs)
-	{
-		return (Center - lhs).SizeSquared() < (Center - rhs).SizeSquared();
-	})).Size();
+		{
+			return (Center - lhs).SizeSquared() < (Center - rhs).SizeSquared();
+		}));
+	Radius = (farthestPoint - Center).Size();
 }
