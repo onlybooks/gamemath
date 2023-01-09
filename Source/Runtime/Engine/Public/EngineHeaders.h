@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include <memory>
 
 #include "InputManager.h"
 #include "EngineInterface.h"
