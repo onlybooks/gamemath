@@ -15,7 +15,7 @@
   
 ## 요구사항
 - 비주얼 스튜디오 2019 혹은 비주얼 스튜디오 2022
-- CMake 3.1버젼 이상 ( https://cmake.org/download/ ) 
+- CMake 3.22.1버젼 권장 ( https://cmake.org/files/v3.22/cmake-3.22.1-windows-x86_64.msi ) 
 - 본 프로젝트는 윈도우만 지원합니다. 
 
 ## 컴파일 방법
